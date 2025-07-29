@@ -56,7 +56,12 @@ final class Conductor
 	public static var songPosition(get, default):Float;
 	private static function get_songPosition() {
 		if (songOffset != Options.songOffset) songOffset = Options.songOffset;
-		return songPosition - songOffset;
+		if (!Options.songOffsetAffectEditors && Charter.instance != null) {
+			trace("NO MORE NOTE OFFSET!!!!!");
+			return songPosition;
+		}
+		else
+			return songPosition - songOffset;
 	}
 
 	/**

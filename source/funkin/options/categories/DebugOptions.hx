@@ -18,5 +18,6 @@ class DebugOptions extends TreeMenuScreen {
 		add(new NumOption(getNameID("charterAutoSaveTime"), getDescID("charterAutoSaveTime"), 60, 60*10, 1, "charterAutoSaveTime"));
 		add(new NumOption(getNameID("charterAutoSaveWarningTime"), getDescID("charterAutoSaveWarningTime"), 0, 15, 1, "charterAutoSaveWarningTime"));
 		add(new Checkbox(getNameID("charterAutoSavesSeparateFolder"), getDescID("charterAutoSavesSeparateFolder"), "charterAutoSavesSeparateFolder"));
+		add(new Checkbox(getNameID("songOffsetAffectEditors"), getDescID("songOffsetAffectEditors"), "songOffsetAffectEditors"));
 	}
 }
