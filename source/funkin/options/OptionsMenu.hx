@@ -1,103 +1,94 @@
 package funkin.options;
 
-import funkin.backend.system.framerate.Framerate;
-import funkin.options.TreeMenu;
+import haxe.xml.Access;
+import flixel.util.typeLimit.OneOfThree;
+import funkin.editors.ui.UIState;
 import funkin.options.categories.*;
 import funkin.options.type.*;
-import funkin.options.type.Checkbox;
-import haxe.xml.Access;
+
+typedef OptionCategory = {
+	var name:String;
+	var desc:String;
+	var ?state:OneOfThree<TreeMenuScreen, Class<TreeMenuScreen>, (name:String, desc:String) -> TreeMenuScreen>;
+	var ?substate:OneOfThree<MusicBeatSubstate, Class<MusicBeatSubstate>, (name:String, desc:String) -> MusicBeatSubstate>;
+	var ?suffix:String;
+}
 
 class OptionsMenu extends TreeMenu {
 	public static var mainOptions:Array<OptionCategory> = [
 		{  // name and desc are actually the translations ids!  - Nex
 			name: 'optionsTree.controls-name',
 			desc: 'optionsTree.controls-desc',
-			state: null,
-			substate: (name:String, desc:String) -> {
-				return new funkin.options.keybinds.KeybindsOptions();
-			}
+			suffix: '',
+			substate: funkin.options.keybinds.KeybindsOptions
 		},
 		{
 			name: 'optionsTree.gameplay-name',
 			desc: 'optionsTree.gameplay-desc',
-			suffix: " >",
 			state: GameplayOptions
 		},
 		{
 			name: 'optionsTree.appearance-name',
 			desc: 'optionsTree.appearance-desc',
-			suffix: " >",
 			state: AppearanceOptions
 		},
 		#if TRANSLATIONS_SUPPORT
 		{
 			name: 'optionsTree.language-name',
 			desc: 'optionsTree.language-desc',
-			suffix: " >",
 			state: LanguageOptions
 		},
 		#end
 		{
 			name: 'optionsTree.miscellaneous-name',
 			desc: 'optionsTree.miscellaneous-desc',
-			suffix: " >",
 			state: MiscOptions
-		},
-		{
-			name: "Debug Options",
-			desc: "debugOptions",
-			suffix: " >",
-			state: DebugOptions
 		}
 	];
 
 	var bg:FlxSprite;
+	var debugOption:TextOption;
 
-	var addedDebugOptions:Bool = !Options.devMode;
-	var debugModeButton:OptionType;
-	var debugModeIndex:Int = mainOptions.length - 1;
-
-	public override function create() {
+	override function create() {
 		super.create();
 
 		CoolUtil.playMenuSong();
 
 		DiscordUtil.call("onMenuLoaded", ["Options Menu"]);
 
-		bg = new FlxSprite(-80).loadAnimatedGraphic(Paths.image('menus/menuBGBlue'));
-		// bg.scrollFactor.set();
-		bg.scale.set(1.15, 1.15);
-		bg.updateHitbox();
-		bg.screenCenter();
-		bg.scrollFactor.set();
+		add(bg = new FlxSprite().loadAnimatedGraphic(Paths.image('menus/menuBGBlue')));
 		bg.antialiasing = true;
-		add(bg);
+		bg.scrollFactor.set();
+		updateBG();
 
-		main = new OptionsScreen("optionsMenu.header.title", "optionsMenu.header.desc", [for(o in mainOptions) {
-			new TextOption(o.name, o.desc, o.suffix, function() {
-				if (o.substate != null) {
-					persistentUpdate = false;
-					persistentDraw = true;
-					if (o.substate is MusicBeatSubstate) {
-						openSubState(o.substate);
-					} else if(Reflect.isFunction(o.substate)) {
-						var substate:(name:String, desc:String) -> MusicBeatSubstate = o.substate;
-						openSubState(substate(o.name, o.desc));
-					} else { // o.substate is Class<OptionsScreen>
-						openSubState(Type.createInstance(o.substate, [o.name, o.desc]));
-					}
-				} else {
-					if (o.state is OptionsScreen) {
-						optionsTree.add(o.state);
-					} else if(Reflect.isFunction(o.state)) {
-						var state:(name:String, desc:String) -> OptionsScreen = o.state;
-						optionsTree.add(state(o.name, o.desc));
-					} else { // o.state is Class<OptionsScreen>
-						optionsTree.add(Type.createInstance(o.state, [o.name, o.desc]));
-					}
+		addMenu(new TreeMenuScreen('optionsMenu.header.title', 'optionsMenu.header.desc', [for (o in mainOptions) new TextOption(o.name, o.desc, o.suffix != null ? o.suffix : " >", () -> {
+			if (o.substate != null) {
+				persistentUpdate = false;
+				persistentDraw = true;
+
+				if (o.substate is MusicBeatSubstate)
+					openSubState(o.substate);
+				else if(Reflect.isFunction(o.substate)) {
+					var substate:(name:String, desc:String) -> MusicBeatSubstate = o.substate;
+					openSubState(substate(o.name, o.desc));
 				}
-			});
-		}]);
+				else // o.substate is Class<TreeMenuScreen>
+					openSubState(Type.createInstance(o.substate, [o.name, o.desc]));
+			}
+			else {
+				if (o.state is TreeMenuScreen)
+					addMenu(o.state);
+				else if (Reflect.isFunction(o.state)) {
+					var state:(name:String, desc:String) -> TreeMenuScreen = o.state;
+					addMenu(state(o.name, o.desc));
+				}
+				else { // o.state is Class<TreeMenuScreen>
+					addMenu(Type.createInstance(o.state, [o.name, o.desc]));
+				}
+			}
+		})]));
+
+		checkDebugOption();
 
 		for (i in funkin.backend.assets.ModsFolder.getLoadedMods()) {
 			var xmlPath = Paths.xml('config/options/LIB_$i');
@@ -106,48 +97,55 @@ class OptionsMenu extends TreeMenu {
 				var access:Access = null;
 				try access = new Access(Xml.parse(Paths.assetsTree.getSpecificAsset(xmlPath, "TEXT")))
 				catch(e) Logs.trace('Error while parsing options.xml: ${Std.string(e)}', ERROR);
-				if (access != null) for (o in parseOptionsFromXML(access)) main.add(o);
+				if (access != null) for (o in parseOptionsFromXML(access)) tree.first().add(o);
 			}
 		}
-
-		doDebugOptionThing();
 	}
 
-	public override function onMenuClose(m:OptionsScreen) {
-		doDebugOptionThing();
-	}
-
-	public function reloadStrings() {
-		for(o in main.members) {
-			o.reloadStrings();
+	function checkDebugOption() {
+		var screen = tree.first();
+		if (Options.devMode) {
+			if (debugOption == null) {
+				screen.insert(CoolUtil.minInt(screen.length, mainOptions.length),
+					debugOption = new TextOption('optionsTree.debug-name', 'optionsTree.debug-desc', ' >', () -> addMenu(new DebugOptions()))
+				);
+			}
 		}
-		optionsTree.reloadStrings();
-		reloadLabels();
+		else if (debugOption != null) {
+			screen.remove(debugOption, true);
+			debugOption = flixel.util.FlxDestroyUtil.destroy(debugOption);
+			if (screen.curSelected >= screen.length) screen.changeSelection(0, true);
+		}
 	}
 
-	public override function exit() {
+	public function updateBG() {
+		var scaleX:Float = FlxG.width / bg.width;
+		var scaleY:Float = FlxG.height / bg.height;
+		bg.scale.x = bg.scale.y = Math.max(scaleX, scaleY) * 1.15;
+		bg.screenCenter();
+	}
+
+	override function onResize(width:Int, height:Int) {
+		super.onResize(width, height);
+		if (!UIState.resolutionAware) return;
+
+		updateBG();
+	}
+
+	override function menuChanged() {
+		super.menuChanged();
+		checkDebugOption();
+	}
+
+	override function exit() {
 		Options.save();
 		Options.applySettings();
 		super.exit();
 	}
 
-	function doDebugOptionThing() {
-		if ((Options.devMode && !addedDebugOptions) || (!Options.devMode && addedDebugOptions)) {
-			trace((addedDebugOptions ? "remove" : "add") + " option");
-			addedDebugOptions = !addedDebugOptions;
-			if (debugModeButton == null) debugModeButton = main.members[debugModeIndex];
-			if (addedDebugOptions)
-				main.add(debugModeButton);
-			else
-				main.remove(debugModeButton);
-		}
-	}
-
-	/**
-	 * XML STUFF
-	 */
-	public function parseOptionsFromXML(xml:Access):Array<OptionType> {
-		var options:Array<OptionType> = [];
+	// XML STUFF
+	public function parseOptionsFromXML(xml:Access):Array<FlxSprite> {
+		var options:Array<FlxSprite> = [];
 
 		for(node in xml.elements) {
 			if (!node.has.name) {
@@ -163,7 +161,7 @@ class OptionsMenu extends TreeMenu {
 						Logs.warn("A checkbox option requires an \"id\" for option saving.");
 						continue;
 					}
-					options.push(new Checkbox(name, desc, node.att.id, FlxG.save.data));
+					options.push(new Checkbox(name, desc, node.att.id, null, FlxG.save.data));
 
 				case "number":
 					if (!node.has.id) {
@@ -189,9 +187,7 @@ class OptionsMenu extends TreeMenu {
 						options.push(new ArrayOption(name, desc, optionOptions, optionDisplayOptions, node.att.id, null, FlxG.save.data));
 
 				case "menu":
-					options.push(new TextOption(name + " >", desc, function() {
-						optionsTree.add(new OptionsScreen(name, desc, parseOptionsFromXML(node)));
-					}));
+					options.push(new TextOption(name, desc, ' >', () -> addMenu(new TreeMenuScreen(name, desc, parseOptionsFromXML(node)))));
 			}
 		}
 

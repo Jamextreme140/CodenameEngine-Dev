@@ -1,35 +1,26 @@
 package funkin.options.categories;
 
-class MiscOptions extends OptionsScreen {
-	public override function new(title:String, desc:String) {
-		super(title, desc, "MiscOptions.");
-		add(new Checkbox(
-			getName("devMode"),
-			getDesc("devMode"),
-			"devMode"));
+class MiscOptions extends TreeMenuScreen {
+	public function new() {
+		super('optionsTree.miscellaneous-name', 'optionsTree.miscellaneous-desc', 'MiscOptions.');
+
+		add(new Checkbox(getNameID('devMode'), getDescID('devMode'), 'devMode'));
+		add(new Checkbox(getNameID('allowConfigWarning'), getDescID('allowConfigWarning'), 'allowConfigWarning'));
 		#if UPDATE_CHECKING
-		add(new Checkbox(
-			getName("betaUpdates"),
-			getDesc("betaUpdates"),
-			"betaUpdates"));
-		add(new TextOption(
-			getName("checkForUpdates"),
-			getDesc("checkForUpdates"),
-			function() {
-				var report = funkin.backend.system.updating.UpdateUtil.checkForUpdates();
-				if (report.newUpdate) {
-					FlxG.switchState(new funkin.backend.system.updating.UpdateAvailableScreen(report));
-				} else {
-					CoolUtil.playMenuSFX(CANCEL);
-					updateDescText(TU.translate(prefix + "checkForUpdates-noUpdateFound"));
-				}
+		add(new Checkbox(getNameID('betaUpdates'), getDescID('betaUpdates'), 'betaUpdates'));
+		add(new TextOption(getNameID('checkForUpdates'), getDescID('checkForUpdates'), () -> {
+			var report = funkin.backend.system.updating.UpdateUtil.checkForUpdates();
+			if (report.newUpdate) FlxG.switchState(new funkin.backend.system.updating.UpdateAvailableScreen(report));
+			else {
+				CoolUtil.playMenuSFX(CANCEL);
+				updateDescText(translate('checkForUpdates-noUpdateFound'));
+			}
 		}));
 		#end
-		add(new TextOption(
-			getName("resetSaveData"),
-			getDesc("resetSaveData"),
-			function() {
-				// TODO: SAVE DATA RESETTING
+
+		add(new Separator());
+		add(new TextOption(getNameID('resetSaveData'), getDescID('resetSaveData'), () -> {
+			// TODO: SAVE DATA RESETTING
 		}));
 	}
 }

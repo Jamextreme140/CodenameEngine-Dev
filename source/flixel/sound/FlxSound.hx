@@ -312,6 +312,7 @@ class FlxSound extends FlxBasic {
 			_source = null;
 			_sound = null;
 
+			if (autoDestroy) persist = false;
 			reset();
 		}
 		else if (_channel != null && _channel.__isValid) {

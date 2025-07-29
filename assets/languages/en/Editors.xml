@@ -46,7 +46,9 @@
 			<str id="acceptDifficulty">Press ACCEPT to edit the chart for the selected difficulty.</str>
 			<str id="selectDifficulty">Select a difficulty to continue.</str>
 			<str id="newDifficulty">New Difficulty</str>
+			<str id="newDifficultyDesc">Press ACCEPT to create a new chart difficulty.</str>
 			<str id="newSong">New Song</str>
+			<str id="newSongDesc">Press ACCEPT to create a new song.</str>
 		</group>
 
 		<group name="ChartCreationScreen" prefix="chartCreation.">
@@ -437,6 +439,11 @@
 			<str id="win-title">Creating New Character</str>
 			<str id="charName">Character Name $* Required$</str>
 			<str id="charImgName">Character Image File $* Required$</str>
+
+			<group name="Warnings" prefix="warnings.">
+				<str id="char-exists-title">Creating Character: Error!</str>
+				<str id="char-exists-body">The character you are trying to create already exists, if you would like to override it delete the character first!</str>
+			</group>
 		</group>
 	</group>
 
@@ -444,6 +451,7 @@
 		<group name="AlphabetSelection" prefix="selection.">
 			<str id="acceptTypeface">Press ACCEPT to edit this typeface.</str>
 			<str id="newTypeface">New Typeface</str>
+			<str id="newTypefaceDesc">Press ACCEPT to create a new typeface.</str>
 			<str id="desc">Select a typeface to edit</str>
 
 			<group name="Warnings" prefix="warnings.">
@@ -556,6 +564,11 @@
 			<str id="title">Stage Info</str>
 			<str id="stageName">Stage Name</str>
 			<str id="stagePath">Stage Path</str>
+
+			<group name="Warnings" prefix="warnings.">
+				<str id="stage-exists-title">Creating Stage: Error!</str>
+				<str id="stage-exists-body">The stage you are trying to create alreadly exists, if you would like to override it delete the stage first!</str>
+			</group>
 		</group>
 
 		<group name="StageInfoScreen" prefix="stageInfoScreen">

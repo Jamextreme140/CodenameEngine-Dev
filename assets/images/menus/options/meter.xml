@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TextureAtlas imagePath="meter.png" width="102" height="175">
- <SubTexture name="meter empty corner0000.png" x="0" y="104" width="39" height="71"/>
- <SubTexture name="meter empty piece0000.png" x="42" y="104" width="2" height="71"/>
- <SubTexture name="meter filled corner0000.png" x="47" y="104" width="39" height="71"/>
- <SubTexture name="meter filled piece0000.png" x="89" y="104" width="2" height="71"/>
- <SubTexture name="meter slider0000.png" x="0" y="0" width="102" height="102"/>
-</TextureAtlas>

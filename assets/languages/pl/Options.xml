@@ -62,26 +62,28 @@
 		<str id="framerate-name">Klatki</str>
 		<str id="framerate-desc">Ilość Klatek na sekundę ktore gra renderuje</str>
 
-		<str id="antialiasing-name">Wygładzanie</str>
-		<str id="antialiasing-desc">Jeśli wyłączone, Wygładzanie nie będzie widoczne na Sprite'ach. Może poprawić wydajność na koszt ostrzejszego, pikselowatego wyglądu Sprite'ów.</str>
-
 		<str id="colorHealthBar-name">Kolorowe Zdrowie</str>
 		<str id="colorHealthBar-desc">Jeśli wyłączone, Pasek zdrowia będzie tylko używał czerwonego i zielonego koloru, takiego jak z oryginalnej gry.</str>
 
 		<str id="week6PixelPerfect-name">Perfekcyjne Piksele</str>
 		<str id="week6PixelPerfect-desc">Jeśli włączone, Tydzień 6 będzie miał efekt perfekcyjnych pikseli, ustawiający każdy piksel na ekranie.</str>
 
-		<str id="gameplayShaders-name">Shadery Rozgrywki</str>
-		<str id="gameplayShaders-desc">Jeśli wyłączone, Shadery Rozgrywki (efekty wizualne jak Aberacja Chromatyczna z Thorns) nie będą ładowane; może być to pomocne na słabszych urządzeniach.</str>
-
 		<str id="flashingMenu-name">Migające Menu</str>
 		<str id="flashingMenu-desc">Jeśli wyłączone, tło menu głównego nie będzie migać kolorów po wybraniu opcji. Inne migania będą znacznie wolniejsze.</str>
 
-		<str id="lowMemoryMode-name">Niskie zużycie pamięci</str>
+		<group name="AppearanceOptionsAdvanced" prefix="Advanced.">
+			<str id="antialiasing-name">Wygładzanie</str>
+		<str id="antialiasing-desc">Jeśli wyłączone, Wygładzanie nie będzie widoczne na Sprite'ach. Może poprawić wydajność na koszt ostrzejszego, pikselowatego wyglądu Sprite'ów.</str>
+
+			<str id="lowMemoryMode-name">Niskie zużycie pamięci</str>
 		<str id="lowMemoryMode-desc">Jeśli włączone, usunie niektóre elementy tła, co użyje mniej pamięci.</str>
 
-		<str id="gpuOnlyBitmaps-name">Sprite'y w VRAM</str>
-		<str id="gpuOnlyBitmaps-desc">Jeśli włączone, utrzyma obrazy tylko w GPU, uwalniając więcej pamięci (EKSPERYMENTALNE). Wyłaczenie tego użyje o wiele więcej pamięci, szczególnie przy większych duszkach. Zostaw włączone w wypadku wątpliwości.</str>
+			<str id="gameplayShaders-name">Shadery Rozgrywki</str>
+		<str id="gameplayShaders-desc">Jeśli wyłączone, Shadery Rozgrywki (efekty wizualne jak Aberacja Chromatyczna z Thorns) nie będą ładowane; może być to pomocne na słabszych urządzeniach.</str>
+
+			<str id="gpuOnlyBitmaps-name">Sprite'y w VRAM</str>
+			<str id="gpuOnlyBitmaps-desc">Jeśli włączone, utrzyma obrazy tylko w GPU, uwalniając więcej pamięci (EKSPERYMENTALNE). Wyłaczenie tego użyje o wiele więcej pamięci, szczególnie przy większych duszkach. Zostaw włączone w wypadku wątpliwości.</str>
+		</group>
 	</group>
 
 	<group name="GameplayOptions" prefix="GameplayOptions.">
@@ -112,7 +114,7 @@
 
 			<str id="streamedMusic-name">Strumieniowana Muzyka</str>
 			<str id="streamedMusic-desc">Jeśli włączone, tylko muzyka będzie strumieniować audio, uwalniając więcej pamięci, na możliwy koszt większego użycia CPU. (EKSPERYMENTALNE)</str>
-If checked, only musics will have streamed audio, ALSO freeing a LOT of memory with the downside of higher cpu usage if more audio are being streamed at once (EXPERIMENTAL). Turning this off will consume a lot of memory, especially on longer songs. If you aren't sure, leave this on.			
+	
 			<str id="streamedVocals-name">Strumieniowane Wokale</str>
 			<str id="streamedVocals-desc">Jeśli włączone, tylko wokale będą strumieniować audio, uwalniając więcej pamięci, na możliwy koszt większego użycia CPU. (EKSPERYMENTALNE)</str>
 		</group>

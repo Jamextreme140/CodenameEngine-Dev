@@ -6,46 +6,35 @@ import flixel.effects.FlxFlicker;
  * Option type that has text.
 **/
 class TextOption extends OptionType {
+	public var suffix(default, set):String;
 	public var selectCallback:Void->Void;
 
-	private var __text:Alphabet;
-	private var rawText(default, set):String;
-
-	public var text(get, set):String;
-	private function get_text() {return __text.text;}
-	private function set_text(v:String) {return __text.text = v;}
-
-	/**
-	 * If you change this afterwards you will need to call `reloadStrings()`, or manually set rawText to rawText.
-	**/
-	public var suffix:String;
-
-	public function new(text:String, desc:String, ?suffix:String = "", ?selectCallback:Void->Void = null) {
-		super(desc);
-		this.selectCallback = selectCallback;
-		add(__text = new Alphabet(100, 20, "", "bold"));
-		this.suffix = suffix;
-		rawText = text;
+	var __text:Alphabet;
+	override function set_text(v:String) {
+		__text.text = v + suffix;
+		return text = v;
 	}
 
-	override function reloadStrings() {
-		super.reloadStrings();
-		this.rawText = rawText;
-	}
-
-	function set_rawText(v:String) {
-		rawText = v;
-		__text.text = (TU.exists(rawText) ? TU.translate(rawText) : rawText) + suffix;
+	function set_suffix(v:String) {
+		if (suffix == (suffix = v)) return v;
+		__text.text = text + suffix;
 		return v;
 	}
 
-	public override function draw() {
-		super.draw();
+	public function new(text:String, desc:String, ?suffix:String = "", ?selectCallback:Void->Void = null) {
+		@:bypassAccessor this.suffix = suffix;
+		this.selectCallback = selectCallback;
+
+		__text = new Alphabet(20, 20, "", "bold");
+
+		super(text, desc);
+		add(__text);
 	}
-	public override function onSelect() {
-		super.onSelect();
+
+	override function select() {
+		if (locked) return;
 		CoolUtil.playMenuSFX(CONFIRM);
 		FlxFlicker.flicker(this, 1, Options.flashingMenu ? 0.06 : 0.15, true, false);
-		selectCallback();
+		if (selectCallback != null) selectCallback();
 	}
 }

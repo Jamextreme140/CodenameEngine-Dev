@@ -26,6 +26,7 @@ class GithubIconOption extends TextOption
 		this.icon = new GithubUserIcon(user, size, waitUntilLoad);
 		this.usePortrait = usePortrait;
 		add(icon);
+		__text.x = 100;
 	}
 }
 

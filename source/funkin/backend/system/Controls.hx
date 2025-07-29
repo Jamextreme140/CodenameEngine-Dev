@@ -191,6 +191,8 @@ class Controls extends FlxActionSet
 		setKeyboardScheme(scheme, false);
 	}
 
+	public function getActionFromControl(control:Control):FlxAction return macro_getActionFromControl(control);
+
 	public function getKeyName(control:Control, idx:Int = 0):String
 	{
 		var action = macro_getActionFromControl(control);

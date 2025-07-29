@@ -1995,12 +1995,12 @@ class Charter extends UIState {
 			null,
 			{
 				label: translate("song.addOpponentCamera"),
-				keybind: [Q],
+				keybind: [O],
 				onSelect: _opponent_camera_add
 			},
 			{
 				label: translate("song.addPlayerCamera"),
-				keybind: [E],
+				keybind: [P],
 				onSelect: _player_camera_add
 			},
 			null,

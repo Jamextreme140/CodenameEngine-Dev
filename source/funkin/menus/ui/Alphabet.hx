@@ -167,6 +167,7 @@ class Alphabet extends FlxSprite {
 	// for menu shit
 	public var targetY:Float = 0;
 	public var isMenuItem:Bool = false;
+	public var itemHeight:Float = 120;
 
 	public function new(?x:Float, ?y:Float, ?text:String = "", ?font:OneOfTwo<String, Bool> = "normal") {
 		super(x, y);
@@ -202,7 +203,7 @@ class Alphabet extends FlxSprite {
 		if (isMenuItem) {
 			var scaledY = targetY * 1.3;
 
-			y = CoolUtil.fpsLerp(y, (scaledY * 120) + (FlxG.height - height) * 0.5, 0.16);
+			y = CoolUtil.fpsLerp(y, (scaledY * itemHeight) + (FlxG.height - height) * 0.5, 0.16);
 			x = CoolUtil.fpsLerp(x, (targetY * 20) + 90, 0.16);
 		}
 	}

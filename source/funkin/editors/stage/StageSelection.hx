@@ -1,46 +1,47 @@
 package funkin.editors.stage;
 
 import funkin.editors.stage.StageCreationScreen.StageCreationData;
+import funkin.editors.EditorTreeMenu;
 import funkin.game.Stage;
-import funkin.options.OptionsScreen;
 import funkin.options.type.NewOption;
 import funkin.options.type.OptionType;
 import funkin.options.type.TextOption;
 
-class StageSelection extends EditorTreeMenu
-{
+using StringTools;
+
+class StageSelection extends EditorTreeMenu {
+	override function create() {
+		super.create();
+		DiscordUtil.call("onEditorTreeLoaded", ["Stage Editor"]);
+		addMenu(new StageSelectionScreen());
+	}
+}
+
+class StageSelectionScreen extends EditorTreeMenuScreen {
 	public var stages:Array<String> = [];
 
-	public override function create()
-	{
-		bgType = "charter";
-		super.create();
+	public function makeStageOption(stage:String):TextOption {
+		return new TextOption(stage, getID('acceptStage'), () -> {
+			FlxG.switchState(new StageEditor(stage));
+		});
+	}
+
+	public function new() {
+		super('editor.stage.name', 'stageSelection.desc', 'stageSelection.', 'newStage', 'acceptNewStage', () -> {
+			parent.openSubState(new StageCreationScreen(saveStage));
+		});
 
 		var modsList:Array<String> = Stage.getList(true, true);
-
-		var list:Array<OptionType> = [
-			for (stage in (modsList.length == 0 ? Stage.getList(false, true) : modsList)) {
-				stages.push(stage);
-				new TextOption(stage, TU.translate("stageSelection.acceptStage"),
-			 	function() {
-					FlxG.switchState(new StageEditor(stage));
-				});
-			}
-		];
-
-		list.insert(0, new NewOption(TU.translate("stageSelection.newStage"), TU.translate("stageSelection.acceptNewStage"), function() {
-			FlxG.state.openSubState(new StageCreationScreen(saveStage));
-		}));
-
-		main = new OptionsScreen(TU.translate("editor.stage.name"), TU.translate("stageSelection.desc"), list);
-
-		DiscordUtil.call("onEditorTreeLoaded", ["Stage Editor"]);
+		for (stage in (modsList.length == 0 ? Stage.getList(false, true) : modsList)) {
+			stages.push(stage.toLowerCase());
+			add(makeStageOption(stage));
+		}
 	}
 
 	public function saveStage(creation:StageCreationData) {
-		if ([for (s in stages) s.toLowerCase()].contains(creation.name.toLowerCase())) {
-			openSubState(new UIWarningSubstate("Creating Stage: Error!", "The stage you are trying to create alreadly exists, if you would like to override it delete the stage first!", [
-				{label: "Ok", color: 0xFFFF0000, onClick: function(t) {}}
+		if (stages.contains(creation.name.toLowerCase())) {
+			parent.openSubState(new UIWarningSubstate(TU.translate("stageCreationScreen.warnings.stage-exists-title"), TU.translate("stageCreationScreen.warnings.stage-exists-body"), [
+				{label: TU.translate("editor.ok"), color: 0xFFFF0000, onClick: (t) -> {}},
 			]));
 			return;
 		}
@@ -51,15 +52,7 @@ class StageSelection extends EditorTreeMenu
 		#end
 
 		// Add to List
-		var option = new TextOption(creation.name, TU.translate("stageSelection.acceptStage"), function() {
-			FlxG.switchState(new StageEditor(creation.name));
-		});
-		optionsTree.members[optionsTree.members.length-1].insert(1, option);
-	}
-
-	override function createPost() {
-		super.createPost();
-
-		main.changeSelection(1);
+		stages.push(creation.name.toLowerCase());
+		parent.tree.last().insert(parent.tree.last().length - 1, makeStageOption(creation.name));
 	}
 }

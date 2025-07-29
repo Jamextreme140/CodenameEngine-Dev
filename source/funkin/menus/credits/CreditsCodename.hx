@@ -9,21 +9,20 @@ import funkin.options.type.GithubIconOption;
 
 using StringTools;
 
-class CreditsCodename extends funkin.options.OptionsScreen {
+class CreditsCodename extends funkin.options.TreeMenuScreen {
 	public var error:Bool = false;
 	public var totalContributions:Int = 0;
 	public var contribFormats:Array<FlxTextFormatMarkerPair> = [];
 
-	public override function new()
-	{
-		super("Codename Engine", TU.translate("credits.allContributors"));
+	public function new() {
+		super("Codename Engine", "credits.allContributors");
 		tryUpdating(true);
 	}
 
 	// blame the secondary threads if the code has to look this bad  - Nex
 	private var _canReset:Bool = true;
 	private var _downloadingSteps:Int = 0;
-	public override function update(elapsed:Float) {
+	override function update(elapsed:Float) {
 		super.update(elapsed);
 
 		if (_downloadingSteps == 2) {
@@ -35,37 +34,37 @@ class CreditsCodename extends funkin.options.OptionsScreen {
 			_canReset = true;
 			updateMenuDesc();
 		}
-		else if(_canReset && PlayerSettings.solo.controls.RESET) tryUpdating();
+		else if (_canReset && PlayerSettings.solo.controls.RESET) tryUpdating();
 	}
 
 	public function tryUpdating(forceDisplaying:Bool = false) {
 		updateMenuDesc(TU.translate("credits.downloadingList"));
 		_canReset = false;
-		Main.execAsync(function() {
-			if(checkUpdate() || forceDisplaying) _downloadingSteps = 2;
+		Main.execAsync(() -> {
+			if (checkUpdate() || forceDisplaying) _downloadingSteps = 2;
 			else _downloadingSteps = 1;
 		});
 	}
 
 	public override function updateMenuDesc(?txt:String) {
-		if(!_canReset) return;
+		if (!_canReset) return;
 		super.updateMenuDesc(txt);
 		updateMarkup();
 	}
 
 	public function updateMarkup() {
-		if(parent == null || parent.treeParent == null) return;
-		var text:String = parent.treeParent.pathDesc.text;
-		parent.treeParent.pathDesc.text = "";
-		parent.treeParent.pathDesc.applyMarkup(text, contribFormats = [
+		if (parent == null) return;
+		var text:String = parent.descLabel.text;
+		parent.descLabel.text = "";
+		parent.descLabel.applyMarkup(text, contribFormats = [
 			new FlxTextFormatMarkerPair(new FlxTextFormat(Flags.MAIN_DEVS_COLOR), '*'),
 			new FlxTextFormatMarkerPair(new FlxTextFormat(FlxColor.interpolate(Flags.MIN_CONTRIBUTIONS_COLOR, Flags.MAIN_DEVS_COLOR, Options.contributors[curSelected].contributions / totalContributions)), '~')
 		]);
 	}
 
 	override function close() {
+		for (frmt in contribFormats) parent.descLabel.removeFormat(frmt.format);
 		super.close();
-		for (frmt in contribFormats) parent.treeParent.pathDesc.removeFormat(frmt.format);
 	}
 
 	public function checkUpdate():Bool {

@@ -3,15 +3,11 @@ package funkin.options.categories;
 class LanguageRadio extends RadioButton {
 	public var langID:String;
 
-	public function new(name:String, langID:String) {
+	public function new(screen:TreeMenuScreen, name:String, langID:String) {
+		super(screen, name, "LanguageOptions.language-desc", null, langID, null, "languageSelector");
 		this.langID = langID;
-		super(name, "LanguageOptions.language-desc", null, langID, null, "languageSelector");
 
 		checked = langID == TU.curLanguage;
-	}
-
-	override function reloadStrings() {
-		super.reloadStrings();
 	}
 
 	override function set_rawDesc(v:String) {
@@ -23,28 +19,25 @@ class LanguageRadio extends RadioButton {
 		return v;
 	}
 
-	override dynamic function onSet(value:Dynamic) {
+	override function select() {
+		var prev = checked;
+		super.select();
+		if (prev == checked) return;
+
 		TranslationUtil.setLanguage(value);
-		if(FlxG.state is OptionsMenu) {
-			var menu:OptionsMenu = cast FlxG.state;
-			menu.reloadStrings();
-			trace("Reloading strings");
-		}
+		if (screen.parent == null) screen.reloadStrings();
+		else screen.parent.reloadStrings();
 	}
 }
 
-class LanguageOptions extends OptionsScreen {
-	public override function new(title:String, desc:String) {
-		super(title, desc, "LanguageOptions.");
+class LanguageOptions extends TreeMenuScreen {
+	public override function new() {
+		super('optionsTree.language-name', 'optionsTree.language-desc', 'LanguageOptions.');
 
-		var langArray:Array<String> = TranslationUtil.foundLanguages;
-
-		for(lang in langArray) {
+		for (lang in TranslationUtil.foundLanguages) {
 			var split = lang.split("/");
-			var langId = split.first();
-			var langName = split.last();
-			var radio = new LanguageRadio(langName, langId);
-			add(radio);
+			var langId = split.first(), langName = split.last();
+			add(new LanguageRadio(this, langName, langId));
 		}
 	}
 }

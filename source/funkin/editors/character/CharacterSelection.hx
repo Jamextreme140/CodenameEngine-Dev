@@ -1,81 +1,69 @@
 package funkin.editors.character;
 
 import haxe.xml.Printer;
-import funkin.editors.ui.UIImageExplorer.ImageSaveData;
 import funkin.game.Character;
-import funkin.options.OptionsScreen;
+import funkin.editors.ui.UIImageExplorer.ImageSaveData;
+import funkin.editors.EditorTreeMenu;
 import funkin.options.type.IconOption;
 import funkin.options.type.NewOption;
 import funkin.options.type.TextOption;
 import funkin.options.type.OptionType;
-import funkin.backend.assets.ModsFolder;
 
-class CharacterSelection extends EditorTreeMenu
-{
-	inline function translate(id:String, ?args:Array<Dynamic>)
-		return TU.translate("characterSelection." + id, args);
+class CharacterSelection extends EditorTreeMenu {
+	override function create() {
+		super.create();
+		DiscordUtil.call("onEditorTreeLoaded", ["Character Editor"]);
+		addMenu(new CharacterSelectionScreen());
+	}
+}
 
+class CharacterSelectionScreen extends EditorTreeMenuScreen {
 	public var modsList:Array<String> = [];
 
-	public override function create()
-	{
-		bgType = "charter";
-		super.create();
+	public function new() {
+		super('editor.character.name', 'characterSelection.desc', 'characterSelection.', 'newCharacter', 'newCharacterDesc', () -> {
+			parent.openSubState(new CharacterCreationScreen(createCharacter));
+		});
 
 		var isMods:Bool = true;
 		modsList = Character.getList(true, true);
 
-		if(modsList.length == 0) {
+		if (modsList.length == 0) {
 			modsList = Character.getList(false, true);
 			isMods = false;
 		}
 
-		function generateList(modsList:Array<String>, isMods:Bool, folderPath:String = ""):Array<OptionType> {
-			var list:Array<OptionType> = [];
+		function generateList(modsList:Array<String>, isMods:Bool, folderPath:String = ""):Array<FlxSprite> {
+			var list:Array<FlxSprite> = [];
 
-			for(char in modsList) {
-				if(char.endsWith("/")) {
+			for (char in modsList) {
+				if (char.endsWith("/")) {
 					var folderName = CoolUtil.getFilename(char.substr(0, char.length-1));
 
-					list.push(new TextOption(folderName + " >", translate("acceptFolder"), function() {
+					list.push(new TextOption(folderName, getID('acceptFolder'), ' >', () -> {
 						var newModsList = Character.getList(isMods, true, char);
-						var newList:Array<OptionType> = generateList(newModsList, isMods, folderPath + folderName + "/");
-						optionsTree.add(new OptionsScreen(folderPath + folderName, translate("desc-folder", [folderPath + folderName + "/"]), newList));
+						var newList:Array<FlxSprite> = generateList(newModsList, isMods, folderPath + folderName + "/");
+						parent.addMenu(new EditorTreeMenuScreen(folderPath + folderName, translate('desc-folder', [folderPath + folderName + "/"]), newList));
 					}));
-				} else {
-					list.push(new IconOption(char, translate("acceptCharacter"), Character.getIconFromCharName(folderPath + char, char),
-						function() {
-							FlxG.switchState(new CharacterEditor(folderPath + char));
-						})
-					);
+				}
+				else {
+					list.push(new IconOption(char, getID('acceptCharacter'), Character.getIconFromCharName(folderPath + char, char), () -> {
+						FlxG.switchState(new CharacterEditor(folderPath + char));
+					}));
 				}
 			}
-
-			list.insert(0, new NewOption(translate("newCharacter"), translate("newCharacterDesc"), function() {
-				openSubState(new CharacterCreationScreen(createCharacter));
-			}));
 
 			return list;
 		}
 
-		var list = generateList(modsList, isMods);
-
-		main = new OptionsScreen(TU.translate("editor.character.name"), translate("desc"), list);
-
-		DiscordUtil.call("onEditorTreeLoaded", ["Character Editor"]);
-	}
-
-	override function createPost() {
-		super.createPost();
-
-		main.changeSelection(1);
+		for (o in generateList(modsList, isMods)) add(o);
 	}
 
 	public function createCharacter(name:String, imageSaveData:ImageSaveData, xml:Xml) {
 		var characterAlreadyExists:Bool = modsList.contains(name);
 		if (characterAlreadyExists) {
-			openSubState(new UIWarningSubstate("Creating Character: Error!", "The character you are trying to create already exists, if you would like to override it delete the character first!", [
-				{label: "Ok", color: 0xFFFF0000, onClick: function(t) {}}
+			parent.openSubState(new UIWarningSubstate(TU.translate('characterCreationScreen.warning.char-exists-title'), TU.translate('characterCreationScreen.warning.char-exists-body'), [
+				{label: TU.translate('editor.ok'), color: 0xFFFF0000, onClick: (t) -> {}}
 			]));
 			return;
 		}
@@ -88,11 +76,10 @@ class CharacterSelection extends EditorTreeMenu
 		UIImageExplorer.saveFilesGlobal(imageSaveData, '${Paths.getAssetsRoot()}/images/characters');
 
 		// Add to Menu >:D
-		var option:IconOption = new IconOption(name, "Press ACCEPT to edit this character.", Character.getIconFromCharName(name),
-			function() {
-				FlxG.switchState(new CharacterEditor(name));
-			}
-		);
-		optionsTree.members[optionsTree.members.length-1].insert(1, option);
+		var option:IconOption = new IconOption(name, getID('acceptCharacter'), Character.getIconFromCharName(name), () -> {
+			FlxG.switchState(new CharacterEditor(name));
+		});
+
+		insert(1, option);
 	}
 }

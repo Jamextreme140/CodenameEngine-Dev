@@ -12,16 +12,20 @@
 
 		<str id="optionsTree.gameplay-name">Gameplay</str>
 		<str id="optionsTree.gameplay-desc">Change Gameplay options such as Downscroll, Scroll Speed, Naughtyness...</str>
-		<str id="optionsTree.gameplay.advanced-desc">Change more advanced options such as Window Size, Streaming Audio...</str>
+		<str id="optionsTree.gameplay.advanced-desc">Change more advanced options such as Hit Window Size, Streaming Audio...</str>
 
 		<str id="optionsTree.appearance-name">Appearance</str>
 		<str id="optionsTree.appearance-desc">Change Appearance options such as Flashing menus...</str>
+		<str id="optionsTree.appearance.advanced-desc">Change more advanced options such as VRAM-Only Sprites, Antialiasing, Shaders</str>
 
 		<str id="optionsTree.language-name">Language</str>
 		<str id="optionsTree.language-desc">Change the language that the engine uses.</str>
 
 		<str id="optionsTree.miscellaneous-name">Miscellaneous</str>
 		<str id="optionsTree.miscellaneous-desc">Use this menu to reset save data or engine settings.</str>
+
+		<str id="optionsTree.debug-name">Debug Options</str>
+		<str id="optionsTree.debug-desc">Debug Options for Developer Mode.</str>
 
 		<!-- cant have debug here -->
 	</group>
@@ -62,8 +66,8 @@
 		<str id="framerate-name">Framerate</str>
 		<str id="framerate-desc">Pretty self explanatory, isn't it?</str>
 
-		<str id="antialiasing-name">Antialiasing</str>
-		<str id="antialiasing-desc">If unchecked, will disable antialiasing on every sprite. Can boost performances at the cost of sharper, more pixely sprites.</str>
+		<str id="flashingMenu-name">Flashing Menu</str>
+		<str id="flashingMenu-desc">If unchecked, will disable menu flashing when you select an option in the Main Menu, and other flashes will be slower.</str>
 
 		<str id="colorHealthBar-name">Colored Healthbar</str>
 		<str id="colorHealthBar-desc">If unchecked, the game will use the original red/green health bar from the week 6 fnf game.</str>
@@ -71,17 +75,25 @@
 		<str id="week6PixelPerfect-name">Pixel Perfect Effect</str>
 		<str id="week6PixelPerfect-desc">If checked, Week 6 will have a pixel perfect effect to it enabled, aligning every pixel on the screen.</str>
 
-		<str id="gameplayShaders-name">Gameplay Shaders</str>
-		<str id="gameplayShaders-desc">If unchecked, gameplay shaders (visual effects like Thorns's Chromatic Aberration) wont be loaded; this may be helpful on weak devices.</str>
+		<group name="AppearanceOptionsAdvanced" prefix="Advanced.">
+			<str id="quality-name">Quality</str>
+			<str id="quality-desc">Quality modes to choose, "LOW" = Disable every heavy visual effects as it can get to smoothen the gameplay, "HIGH" = Enable all of the visual effects, with the cost of performance, "CUSTOM" = Allow of custom options that is available in Advanced.</str>
+			<str id="quality-low">LOW</str>
+			<str id="quality-high">HIGH</str>
+			<str id="quality-custom">CUSTOM</str>
 
-		<str id="flashingMenu-name">Flashing Menu</str>
-		<str id="flashingMenu-desc">If unchecked, will disable menu flashing when you select an option in the Main Menu, and other flashes will be slower.</str>
+			<str id="antialiasing-name">Antialiasing</str>
+			<str id="antialiasing-desc">If unchecked, will disable antialiasing on every sprite. Can boost performances at the cost of sharper, more pixely sprites.</str>
 
-		<str id="lowMemoryMode-name">Low Memory Mode</str>
-		<str id="lowMemoryMode-desc">If checked, will disable certain background elements in stages to reduce memory usage.</str>
+			<str id="lowMemoryMode-name">Low Memory Mode</str>
+			<str id="lowMemoryMode-desc">If checked, will disable certain background elements in stages to reduce memory usage.</str>
 
-		<str id="gpuOnlyBitmaps-name">VRAM-Only Sprites</str>
-		<str id="gpuOnlyBitmaps-desc">If checked, will only store the bitmaps in the GPU, freeing a LOT of memory (EXPERIMENTAL). Turning this off will consume a lot of memory, especially on bigger sprites. If you aren't sure, leave this on.</str>
+			<str id="gameplayShaders-name">Gameplay Shaders</str>
+			<str id="gameplayShaders-desc">If unchecked, gameplay shaders (visual effects like Thorns's Chromatic Aberration) wont be loaded; this may be helpful on weak devices.</str>
+
+			<str id="gpuOnlyBitmaps-name">VRAM-Only Sprites</str>
+			<str id="gpuOnlyBitmaps-desc">If checked, will only store the bitmaps in the GPU, freeing a LOT of memory (EXPERIMENTAL). Turning this off will consume a lot of memory, especially on bigger sprites. If you aren't sure, leave this on.</str>
+		</group>
 	</group>
 
 	<group name="GameplayOptions" prefix="GameplayOptions.">
@@ -99,6 +111,9 @@
 
 		<str id="autoPause-name">Auto Pause</str>
 		<str id="autoPause-desc">If checked, switching windows will pause the game.</str>
+
+		<str id="volumeMusic-name">Music Volume</str>
+		<str id="volumeMusic-desc">Changes only the volume of the music instead of everything.</str>
 
 		<str id="volumeSFX-name">SFX Volume</str>
 		<str id="volumeSFX-desc">Changes only the volume of the SFX instead of everything.</str>
@@ -136,6 +151,9 @@
 
 		<str id="devMode-name">Developer Mode</str>
 		<str id="devMode-desc">If checked, you will be able to access developer features like certain keybinds, editors, developer options, state reloads, console and more.</str>
+
+		<str id="allowConfigWarning-name">Show Configs Warning</str>
+		<str id="allowConfigWarning-desc">If checked, a popup at the start of the game will appear if the current mod doesn't have a mod configuration file</str>
 
 		<str id="resetSaveData-name">Reset Save Data</str>
 		<str id="resetSaveData-desc">Select this option to reset save data. This will remove all of your highscores.</str>

@@ -122,7 +122,7 @@ class MainState extends FlxState {
 		CoolUtil.safeAddAttributes('./.temp/', NativeAPI.FileAttribute.HIDDEN);
 		#end
 
-		if (Options.devMode) {
+		if (Options.devMode && Options.allowConfigWarning) {
 			var lib:ModsFolderLibrary;
 			for (e in Paths.assetsTree.libraries) {
 				@:privateAccess if (!(e is openfl.utils.AssetLibrary) || !((lib = cast cast(e, openfl.utils.AssetLibrary).__proxy) is ModsFolderLibrary)) continue;

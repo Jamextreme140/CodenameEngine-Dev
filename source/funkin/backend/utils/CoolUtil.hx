@@ -519,8 +519,8 @@ final class CoolUtil
 	 * @param menuSFX Menu SFX to play
 	 * @param volume At which volume it should play
 	 */
-	@:noUsing public static inline function playMenuSFX(menuSFX:CoolSfx = SCROLL, volume:Float = 1) {
-		FlxG.sound.play(Paths.sound('menu/' + switch(menuSFX) {
+	@:noUsing public static inline function playMenuSFX(menuSFX:CoolSfx = SCROLL, volume:Float = 1):FlxSound {
+		return FlxG.sound.play(Paths.sound('menu/' + switch(menuSFX) {
 			case CONFIRM:	'confirm';
 			case CANCEL:	'cancel';
 			case SCROLL:	'scroll';
@@ -528,7 +528,7 @@ final class CoolUtil
 			case UNCHECKED:	'checkboxUnchecked';
 			case WARNING:	'warningMenu';
 			default: 		'scroll';
-		}), volume);
+		}), volume * Options.volumeSFX);
 	}
 
 	/**

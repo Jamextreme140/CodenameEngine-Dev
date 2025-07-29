@@ -20,11 +20,7 @@ class MeterOption extends OptionType {
 
 	public var barWidth(default, set):Int;
 
-	private var rawText(default, set):String;
-
-	public var text(get, set):String;
-	private function get_text() {return __text.text;}
-	private function set_text(v:String) {return __text.text = v;}
+	override function set_text(v:String) return __text.text = text = v;
 
 	private var __text:Alphabet;
 	var optionName:String;
@@ -43,7 +39,7 @@ class MeterOption extends OptionType {
 	public function new(text:String, desc:String, min:Float, max:Float, changeVal:Float, optionName:String, barWidth:Int = 520,
 		?selectCallback:Float->Void = null, ?parent:Dynamic)
 	{
-		super(desc);
+		super(text, desc);
 
 		this.selectCallback = selectCallback;
 		this.min = min;
@@ -162,12 +158,6 @@ class MeterOption extends OptionType {
 		x += temp * barScale;
 	}
 
-	function set_rawText(v:String) {
-		rawText = v;
-		__text.text = TU.exists(rawText) ? TU.translate(rawText) : rawText;
-		return v;
-	}
-
 	override function draw() {
 		lastX = x;
 
@@ -196,7 +186,7 @@ class MeterOption extends OptionType {
 		this.rawText = rawText;
 	}
 
-	override function onChangeSelection(change:Float) {
+	override function changeSelection(change:Float) {
 		if (currentSelection <= min && change == -1 || currentSelection >= max && change == 1) return;
 		currentSelection = FlxMath.roundDecimal(currentSelection + (change * changeVal), FlxMath.getDecimals(changeVal));
 
