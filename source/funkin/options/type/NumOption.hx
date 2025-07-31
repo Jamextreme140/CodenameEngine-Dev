@@ -23,7 +23,7 @@ class NumOption extends TextOption {
 		return v;
 	}
 
-	public function new(text:String, desc:String, min:Float, max:Float, step:Float, optionName:String, ?changedCallback:Float->Void = null, ?parent:Dynamic) {
+	public function new(text:String, desc:String, min:Float, max:Float, step:Float = 1, ?optionName:String, ?changedCallback:Float->Void = null, ?parent:Dynamic) {
 		this.changedCallback = changedCallback;
 		this.min = min;
 		this.max = max;

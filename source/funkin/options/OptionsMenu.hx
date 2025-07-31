@@ -89,6 +89,7 @@ class OptionsMenu extends TreeMenu {
 		})]));
 
 		checkDebugOption();
+		var first = tree.first();
 
 		for (i in funkin.backend.assets.ModsFolder.getLoadedMods()) {
 			var xmlPath = Paths.xml('config/options/LIB_$i');
@@ -97,24 +98,24 @@ class OptionsMenu extends TreeMenu {
 				var access:Access = null;
 				try access = new Access(Xml.parse(Paths.assetsTree.getSpecificAsset(xmlPath, "TEXT")))
 				catch(e) Logs.trace('Error while parsing options.xml: ${Std.string(e)}', ERROR);
-				if (access != null) for (o in parseOptionsFromXML(access)) tree.first().add(o);
+				if (access != null) for (o in parseOptionsFromXML(first, access)) first.add(o);
 			}
 		}
 	}
 
 	function checkDebugOption() {
-		var screen = tree.first();
+		var first = tree.first();
 		if (Options.devMode) {
 			if (debugOption == null) {
-				screen.insert(CoolUtil.minInt(screen.length, mainOptions.length),
+				first.insert(CoolUtil.minInt(first.length, mainOptions.length),
 					debugOption = new TextOption('optionsTree.debug-name', 'optionsTree.debug-desc', ' >', () -> addMenu(new DebugOptions()))
 				);
 			}
 		}
 		else if (debugOption != null) {
-			screen.remove(debugOption, true);
+			first.remove(debugOption, true);
 			debugOption = flixel.util.FlxDestroyUtil.destroy(debugOption);
-			if (screen.curSelected >= screen.length) screen.changeSelection(0, true);
+			if (first.curSelected >= first.length) first.changeSelection(0, true);
 		}
 	}
 
@@ -144,7 +145,7 @@ class OptionsMenu extends TreeMenu {
 	}
 
 	// XML STUFF
-	public function parseOptionsFromXML(xml:Access):Array<FlxSprite> {
+	public function parseOptionsFromXML(screen:TreeMenuScreen, xml:Access):Array<FlxSprite> {
 		var options:Array<FlxSprite> = [];
 
 		for(node in xml.elements) {
@@ -168,7 +169,7 @@ class OptionsMenu extends TreeMenu {
 						Logs.warn("A number option requires an \"id\" for option saving.");
 						continue;
 					}
-					options.push(new NumOption(name, desc, Std.parseFloat(node.att.min), Std.parseFloat(node.att.max), Std.parseFloat(node.att.change), node.att.id, null, FlxG.save.data));
+					options.push(new NumOption(name, desc, Std.parseFloat(node.att.min), Std.parseFloat(node.att.max), Std.parseFloat(node.att.step), node.att.id, null, FlxG.save.data));
 				case "choice":
 					if (!node.has.id) {
 						Logs.warn("A choice option requires an \"id\" for option saving.");
@@ -185,9 +186,29 @@ class OptionsMenu extends TreeMenu {
 
 					if(optionOptions.length > 0)
 						options.push(new ArrayOption(name, desc, optionOptions, optionDisplayOptions, node.att.id, null, FlxG.save.data));
+				case 'radio':
+					if (!node.has.id) {
+						Logs.warn("A radio option requires an \"id\" for option saving.");
+						continue;
+					}
+					var v:Dynamic = Std.parseFloat(node.att.value);
+					options.push(new RadioButton(screen, name, desc, node.att.id, v != null ? v : node.att.value, null, FlxG.save.data, node.att.forId));
+				case 'slider':
+					if (!node.has.id) {
+						Logs.warn("A slider option requires an \"id\" for option saving.");
+						continue;
+					}
+					options.push(new SliderOption(name, desc, Std.parseFloat(node.att.min), Std.parseFloat(node.att.max), Std.parseFloat(node.att.step), Std.parseInt(node.att.segments), node.att.id, Std.parseInt(node.att.barWidth), null, FlxG.save.data));
+
+				case 'separator':
+					options.push(new Separator(Std.parseInt(node.att.height)));
 
 				case "menu":
-					options.push(new TextOption(name, desc, ' >', () -> addMenu(new TreeMenuScreen(name, desc, parseOptionsFromXML(node)))));
+					options.push(new TextOption(name, desc, ' >', () -> {
+						var screen = new TreeMenuScreen(name, desc);
+						for (o in parseOptionsFromXML(screen, node)) screen.add(o);
+						addMenu(screen);
+					}));
 			}
 		}
 

@@ -25,7 +25,7 @@ class Checkbox extends TextOption {
 		return v;
 	}
 
-	public function new(text:String, desc:String, optionName:String, ?selectCallback:Void->Void, ?parent:Dynamic) {
+	public function new(text:String, desc:String, ?optionName:String, ?selectCallback:Void->Void, ?parent:Dynamic) {
 		this.optionName = optionName;
 		this.parent = parent = parent != null ? parent : Options;
 

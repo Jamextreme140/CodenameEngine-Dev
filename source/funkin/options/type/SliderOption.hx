@@ -32,7 +32,7 @@ class SliderOption extends TextOption implements ITreeFloatOption {
 		return v;
 	}
 
-	public function new(text:String, desc:String, min:Float, max:Float, step:Float, ?segments:Int, optionName:String, barWidth = -1,
+	public function new(text:String, desc:String, min:Float, max:Float, step:Float = 1, ?segments:Int, ?optionName:String, barWidth = -1,
 		?changedCallback:Float->Void = null, ?parent:Dynamic)
 	{
 		this.changedCallback = changedCallback;

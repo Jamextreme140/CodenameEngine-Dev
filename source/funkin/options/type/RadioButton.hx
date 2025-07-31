@@ -21,7 +21,7 @@ class RadioButton extends TextOption {
 		"checking" => FlxPoint.get(17, -40)
 	];
 
-	public function new(?screen:TreeMenuScreen, text:String, desc:String, optionName:String, value:Dynamic, ?selectCallback:Void->Void, ?parent:Dynamic, ?forId:String) {
+	public function new(?screen:TreeMenuScreen, text:String, desc:String, ?optionName:String, value:Dynamic, ?selectCallback:Void->Void, ?parent:Dynamic, ?forId:String) {
 		super(text, desc, selectCallback);
 		this.screen = screen;
 		this.optionName = optionName;
