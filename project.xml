@@ -153,9 +153,6 @@
 	<!-- Comment this out to disable support for Away3D Flixel Integration (reduces compile times) !-->
 	<define name="THREE_D_SUPPORT" unless="STRIPPED_COMPILE" />
 
-	<!-- Comment this out to disable support for Funkin Audio Visualizer (reduces compile times) !-->
-	<define name="AUDIO_VIS_SUPPORT" unless="STRIPPED_COMPILE" />
-
 	<!-- Comment this out to disable support for Nape integration (flixel.addons.nape) (reduces compile times) !-->
 	<define name="NAPE_ENABLED" unless="STRIPPED_COMPILE" />
 
@@ -196,8 +193,6 @@
 
 	<haxelib name="hxvlc" if="VIDEO_CUTSCENES" />
 	<haxelib name="away3d" if="THREE_D_SUPPORT" />
-	<haxelib name="funkin.vis" if="AUDIO_VIS_SUPPORT" />
-	<haxelib name="grig.audio" if="AUDIO_VIS_SUPPORT" />
 	<haxelib name="format" />
 	<haxelib name="flxanimate" />
 	<haxelib name="nape-haxe4" if="NAPE_ENABLED"/>

@@ -40,7 +40,7 @@ class NumOption extends TextOption {
 
 	override function changeSelection(change:Int):Void {
 		if (locked) return;
-		if (currentValue == (currentValue = FlxMath.bound(currentValue + change, min, max))) return;
+		if (currentValue == (currentValue = FlxMath.bound(currentValue + change * step, min, max))) return;
 		__number.text = ': $currentValue';
 
 		Reflect.setField(parent, optionName, currentValue);

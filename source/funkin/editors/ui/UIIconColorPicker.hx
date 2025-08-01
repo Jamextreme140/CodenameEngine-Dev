@@ -2,7 +2,7 @@ package funkin.editors.ui;
 
 import openfl.display.BitmapData;
 import flixel.util.FlxColor;
-
+import flixel.graphics.frames.FlxAtlasFrames;
 using funkin.backend.utils.BitmapUtil;
 
 class UIIconColorPicker extends UISliceSprite {
@@ -41,12 +41,17 @@ class UIIconColorPicker extends UISliceSprite {
 		if (iconSprite.animation.exists(icon)) return;
 		@:privateAccess iconSprite.animation.clearAnimations();
 
-		var path:String = Paths.image('icons/$icon');
-		if (!Assets.exists(path)) path = Paths.image('icons/face');
+		var path:String = Assets.exists(Paths.image('icons/$icon/icon')) ? Paths.image('icons/$icon/icon') : Paths.image('icons/$icon');
+		if (!Assets.exists(path)) path = Paths.image('icons/face/icon');
 
-		iconSprite.loadGraphic(__path = path, true, 150, 150);
-		iconSprite.animation.add(icon, [0], 0, false);
-		iconSprite.animation.play(icon);
+		if(Assets.exists(Paths.getPath('images/icons/$icon/icon.xml'))) {
+			iconSprite.frames = FlxAtlasFrames.fromSparrow(__path = path, Paths.getPath('images/icons/$icon/icon.xml'));
+			iconSprite.animation.add("idle", [0], 24, true, false, false);
+			iconSprite.animation.play("idle");
+		} else {
+			iconSprite.loadGraphic(__path = path, true, 150, 150);
+		}
+		
 
 		iconSprite.scale.set(125/150, 125/150);
 		iconSprite.updateHitbox();

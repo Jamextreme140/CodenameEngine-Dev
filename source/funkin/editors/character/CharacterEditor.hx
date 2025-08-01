@@ -286,7 +286,6 @@ class CharacterEditor extends UIState {
 		characterGizmo.boxGizmo = Options.characterHitbox;
 		characterGizmo.cameraGizmo = Options.characterCamera;
 		characterGizmo.cameras = [gizmosCamera];
-		add(characterGizmo);
 
 		uiCamera = new FlxCamera();
 		uiCamera.bgColor = 0;
@@ -298,6 +297,7 @@ class CharacterEditor extends UIState {
 		character.cameras = [charCamera];
 
 		characterGizmo.character = character;
+		add(characterGizmo);
 
 		changeCharacterIsPlayer(character.playerOffsets);
 

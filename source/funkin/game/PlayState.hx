@@ -224,7 +224,7 @@ class PlayState extends MusicBeatState
 	/**
 	 * Whether or not to bop the icons on beat.
 	 */
-	public var doIconBop:Bool = true;
+	public var doIconBop:Bool = Flags.DEFAULT_ICONBOP;
 
 	/**
 	 * Current song name (lowercase)

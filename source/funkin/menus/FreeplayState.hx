@@ -246,24 +246,37 @@ class FreeplayState extends MusicBeatState
 		autoplayElapsed += elapsed;
 		if (!disableAutoPlay && !songInstPlaying && (autoplayElapsed > timeUntilAutoplay || FlxG.keys.justPressed.SPACE)) {
 			if (curPlayingInst != (curPlayingInst = Paths.inst(songs[curSelected].name, songs[curSelected].difficulties[curDifficulty]))) {
-				var huh:Void->Void = function() {
-					var soundPath = curPlayingInst;
-					var sound = null;
-					if (Assets.exists(soundPath, SOUND) || Assets.exists(soundPath, MUSIC))
-						sound = Assets.getSound(soundPath);
-					else
-						FlxG.log.error('Could not find a Sound asset with an ID of \'$soundPath\'.');
+				var streamed = false;
+				if (Options.streamedMusic) {
+					var sound = Assets.getMusic(curPlayingInst, true, false);
+					streamed = sound != null;
 
-					if (sound != null && autoplayShouldPlay) {
+					if (streamed && autoplayShouldPlay) {
 						FlxG.sound.playMusic(sound, 0);
 						Conductor.changeBPM(songs[curSelected].bpm, songs[curSelected].beatsPerMeasure, songs[curSelected].stepsPerBeat);
 					}
 				}
-				if (!disableAsyncLoading) Main.execAsync(huh);
-				else huh();
+
+				if (!streamed) {
+					var huh:Void->Void = function() {
+						var soundPath = curPlayingInst;
+						var sound = null;
+						if (Assets.exists(soundPath, SOUND) || Assets.exists(soundPath, MUSIC))
+							sound = Assets.getSound(soundPath);
+						else
+							FlxG.log.error('Could not find a Sound asset with an ID of \'$soundPath\'.');
+
+						if (sound != null && autoplayShouldPlay) {
+							FlxG.sound.playMusic(sound, 0);
+							Conductor.changeBPM(songs[curSelected].bpm, songs[curSelected].beatsPerMeasure, songs[curSelected].stepsPerBeat);
+						}
+					}
+					if (!disableAsyncLoading) Main.execAsync(huh);
+					else huh();
+				}
 			}
 			songInstPlaying = true;
-			if(disableAsyncLoading) dontPlaySongThisFrame = true;
+			if (disableAsyncLoading && !Options.streamedMusic) dontPlaySongThisFrame = true;
 		}
 		#end
 
@@ -423,8 +436,8 @@ class FreeplayState extends MusicBeatState
 		changeDiff(0, true);
 
 		#if PRELOAD_ALL
-			autoplayElapsed = 0;
-			songInstPlaying = false;
+		autoplayElapsed = 0;
+		songInstPlaying = false;
 		#end
 
 		coopText.visible = songs[curSelected].coopAllowed || songs[curSelected].opponentModeAllowed;

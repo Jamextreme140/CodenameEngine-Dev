@@ -105,7 +105,7 @@ class MainState extends FlxState {
 
 		Flags.load();
 		TranslationUtil.findAllLanguages();
-		TranslationUtil.setLanguage();
+		TranslationUtil.setLanguage(Flags.DISABLE_LANGUAGES ? Flags.DEFAULT_LANGUAGE : null);
 		ModsFolder.onModSwitch.dispatch(ModsFolder.currentModFolder); // Loads global.hx
 		MusicBeatTransition.script = Flags.DEFAULT_TRANSITION_SCRIPT;
 		WindowUtils.resetTitle();

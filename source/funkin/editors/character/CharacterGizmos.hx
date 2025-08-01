@@ -21,13 +21,13 @@ class CharacterGizmos extends FlxSprite {
 
 	public function drawHitbox() {
 		for (camera in cameras) {
-			if (character.animateAtlas != null) {
+			//if (character.animateAtlas != null) {
 				var bounds:FlxRect = cast character.extra.get(StageEditor.exID("bounds"));
 				character._rect.copyFrom(bounds.getDefault(FlxRect.weak()));
 
-				character._rect.x -= character.cameras[0].viewX;
-				character._rect.y -= character.cameras[0].viewY;
-			} else if (character._matrix != null && character.frame != null) {
+				character._rect.x -= character.cameras[0].viewMarginLeft + character.cameras[0].scroll.x;
+				character._rect.y -= character.cameras[0].viewMarginTop + character.cameras[0].scroll.y;
+			/*} else if (character._matrix != null && character.frame != null) {
 				character._rect.set(
 					character._matrix.tx, character._matrix.ty, 
 					Math.abs(character.frame.frame.width * character._matrix.a), 
@@ -36,8 +36,8 @@ class CharacterGizmos extends FlxSprite {
 				if (character._matrix.a < 0) character._rect.x -= character._rect.width;
 				if (character._matrix.d < 0) character._rect.y -= character._rect.height;
 
-				character._rect.offset(-character.cameras[0].viewMarginLeft, -character.cameras[0].viewMarginTop);
-			}
+				character._rect.offset(-camera.viewMarginLeft, -camera.viewMarginTop);
+			}*/
 
 			character._rect.x *= character.cameras[0].zoom;
 			character._rect.y *= character.cameras[0].zoom;

@@ -46,7 +46,7 @@ class UIDropDown extends UISliceSprite {
 
 		cursor = CLICK;
 
-		label = new UIText(0, 0, width - height, items[index].label);
+		label = new UIText(0, 0, width - height, items[index].label != null ? items[index].label : "ERROR");
 		members.push(label);
 
 		dropButton = new UIButton(0, 0, null, null, height, height);

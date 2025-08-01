@@ -27,7 +27,7 @@ import lime.media.openal.AL;
 @:fileXml('tags="haxe,release"')
 @:noDebug
 #end
-#if (lime && lime_cffi)
+#if lime_cffi
 @:access(lime._internal.backend.native.NativeAudioSource)
 @:access(lime.media.AudioSource)
 #end
@@ -152,16 +152,15 @@ import lime.media.openal.AL;
 	@:noCompletion private function __updatePeaks(time:Float):Bool
 	{
 		if (Math.abs(time - __lastPeakTime) < 8) return false;
-
 		__lastPeakTime = time;
-		__leftPeak = __rightPeak = 0;
 
 		#if !macro
 		if (!__isValid) return false;
 
 		var buffer = __source.buffer;
-		var wordSize = buffer.bitsPerSample >> 3, bitUnsignedSize = 1 << buffer.bitsPerSample, bitSize = 1 << (buffer.bitsPerSample - 1);
-		var pos = Math.floor(time * buffer.sampleRate / 1000 * buffer.channels * wordSize), size = 0, buf;
+		var wordSize = buffer.bitsPerSample >> 3, byteSize = 1 << (buffer.bitsPerSample - 1);
+		var pos = Math.floor(time * buffer.sampleRate / 1000 * buffer.channels * wordSize);
+		var leftMin = 0, leftMax = 0, rightMin = 0, rightMax = 0, size = 0, buf;
 
 		#if lime_cffi
 		var backend = __source.__backend, i = 0;
@@ -169,6 +168,12 @@ import lime.media.openal.AL;
 			size = backend.bufferSizes[i = backend.bufferSizes.length - backend.queuedBuffers];
 			buf = backend.bufferDatas[i].buffer;
 			pos -= Math.floor(backend.bufferTimes[i] * buffer.sampleRate * buffer.channels * wordSize);
+			while (pos > size) {
+				if (++i >= backend.bufferSizes.length) return false;
+				pos -= size;
+				buf = backend.bufferDatas[i].buffer;
+				size = backend.bufferSizes[i];
+			}
 		}
 		else
 		#end {
@@ -176,26 +181,18 @@ import lime.media.openal.AL;
 			size = #if js buf.byteLength #else buf.length #end;
 		}
 
-		var s = Math.floor(Math.min(buffer.sampleRate / 80, 512)), c = Math.floor((pos % (wordSize * buffer.channels)) / wordSize), b = 0, w = 0;
-		pos -= pos % wordSize;
+		var s = Math.floor(Math.min(buffer.sampleRate / 80, 512)), c = 0, b;
+		pos -= pos % (buffer.channels * wordSize);
 
 		while (s > 0) {
-			if (wordSize == 1) b = #if js buf[pos++] #else buf.get(pos++) #end - bitSize;
-			else {
-				while (w < buffer.bitsPerSample) {
-					b |= #if js buf[pos] #else buf.get(pos) #end << w;
-					w += 8;
-					pos++;
-				}
-				if (b > bitSize) b -= bitUnsignedSize;
-			}
-			((c % 2 == 0) ? (if (__leftPeak < b) __leftPeak = b) : (if (__rightPeak < b) __rightPeak = b));
-
-			if (pos >= size) #if lime_cffi {
-				if (!backend.streamed || ++i >= backend.bufferDatas.length) break;
-				size = backend.bufferSizes[i];
-				buf = backend.bufferDatas[i].buffer;
+			b = funkin.backend.utils.AudioAnalyzer.getByte(buf, pos, wordSize);
+			if (c % 2 == 0) ((b > leftMax) ? (leftMax = b) : (if ((b = -b) > leftMin) (leftMin = b)));
+			else ((b > rightMax) ? (rightMax = b) : (if ((b = -b) > rightMin) (rightMin = b)));
+			if ((pos += wordSize) >= size) #if lime_cffi {
+				if (!backend.streamed || ++i >= backend.bufferSizes.length) break;
 				pos = 0;
+				buf = backend.bufferDatas[i].buffer;
+				size = backend.bufferSizes[i];
 			}
 			#else break; #end
 
@@ -203,13 +200,12 @@ import lime.media.openal.AL;
 				c = 0;
 				s--;
 			}
-			w = b = 0;
 		}
 
-		if (buffer.channels == 1) __rightPeak = __leftPeak / bitSize;
+		if (buffer.channels == 1) __rightPeak = (__leftPeak = (leftMax + leftMin) / byteSize);
 		else {
-			__leftPeak = __leftPeak / bitSize;
-			__rightPeak = __rightPeak / bitSize;
+			__leftPeak = (leftMax + leftMin) / byteSize;
+			__rightPeak = (rightMax + rightMin) / byteSize;
 		}
 		#end
 

@@ -386,6 +386,7 @@ class StageEditor extends UIState {
 		// Add it to the stage
 		char.visible = true;
 		char.alpha = 0.75;
+
 		char.extra.set(exID("node"), node);
 		char.extra.set(exID("spacingX"), charPos.charSpacingX);
 		char.extra.set(exID("spacingY"), charPos.charSpacingY);
@@ -402,6 +403,7 @@ class StageEditor extends UIState {
 
 		remove(charPos, true);
 		charPos.destroy();
+		
 		return char;
 	}
 
@@ -540,6 +542,7 @@ class StageEditor extends UIState {
 		sprite.extra.set(exID("parentNode"), stage.stageXML.x);
 		sprite.extra.set(exID("highMemory"), false);
 		sprite.extra.set(exID("lowMemory"), false);
+		sprite.antialiasing = true;
 		xmlMap.set(sprite, node);
 
 		var button:StageSpriteButton = new StageSpriteButton(0, 0, sprite, node);

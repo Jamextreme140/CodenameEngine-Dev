@@ -153,6 +153,7 @@ class Flags {
 
 	public static var DEFAULT_MAX_HEALTH:Float = 2.0;
 	public static var DEFAULT_HEALTH:Null<Float> = null;//DEFAULT_MAX_HEALTH / 2.0;
+	public static var DEFAULT_ICONBOP:Bool = true;
 	public static var BOP_ICON_SCALE:Float = 1.2;
 	public static var ICON_OFFSET:Float = 26;
 	public static var ICON_LERP:Float = 0.33;
@@ -185,6 +186,7 @@ class Flags {
 	public static var DISABLE_EDITORS:Bool = false;
 	public static var DISABLE_WARNING_SCREEN:Bool = true;
 	public static var DISABLE_TRANSITIONS:Bool = false;
+	public static var DISABLE_LANGUAGES:Bool = false;
 
 	@:also(funkin.backend.MusicBeatTransition.script)
 	public static var DEFAULT_TRANSITION_SCRIPT:String = "";

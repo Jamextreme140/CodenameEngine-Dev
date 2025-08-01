@@ -241,7 +241,7 @@ class Assets
 		return null;
 	}
 
-	public static function getMusic(id:String, useCache:Bool = true):Sound
+	public static function getMusic(id:String, useCache:Bool = true, staticFallback:Bool = true):Sound
 	{
 		#if (lime_vorbis && lime > "7.9.0" && !macro)
 		if (Options.streamedMusic) {
@@ -251,7 +251,7 @@ class Assets
 			if (vorbisFile != null) return Sound.fromAudioBuffer(AudioBuffer.fromVorbisFile(vorbisFile));
 		}
 		#end
-		return getSound(id, useCache);
+		return if (staticFallback) getSound(id, useCache); else null;
 	}
 
 	/**

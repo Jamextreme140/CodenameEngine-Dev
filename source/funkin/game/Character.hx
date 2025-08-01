@@ -391,7 +391,7 @@ class Character extends FunkinSprite implements IBeatReceiver implements IOffset
 		}
 
 		for (attribute in xml.x.attributes())
-			if (!characterProperties.contains(attribute))
+			if (!characterProperties.contains(attribute)) 
 				extra[attribute] = xml.x.get(attribute);
 
 		fixChar(__switchAnims, !hasInterval);

@@ -633,16 +633,22 @@ class Charter extends UIState {
 
 		// create events
 		rightEventsGroup.autoSort = leftEventsGroup.autoSort = false;
-		var __last:CharterEvent = null;
-		var __lastTime:Float = Math.NaN;
-		for (e in PlayState.SONG.events) {
-			if (e == null) continue;
-			if (__last != null && __lastTime == e.time) {
-				__last.events.push(e);
-			} else {
-				__last = new CharterEvent(Conductor.getStepForTime(e.time), [e]);
-				__lastTime = e.time;
-				(__last.global ? rightEventsGroup : leftEventsGroup).add(__last);
+		var lastLeftEvents:CharterEvent = null, lastRightEvents:CharterEvent = null, lastEvents:CharterEvent;
+		var lastLeftTime = Math.NaN, lastRightTime = Math.NaN, lastTime:Float;
+		for (e in PlayState.SONG.events) if (e != null) {
+			if (e.global) {
+				lastEvents = lastRightEvents;
+				lastTime = lastRightTime;
+			}
+			else {
+				lastEvents = lastLeftEvents;
+				lastTime = lastLeftTime;
+			}
+
+			if (lastEvents != null && lastTime == e.time) lastEvents.events.push(e);
+			else {
+				lastEvents = new CharterEvent(Conductor.getStepForTime(lastTime = e.time), [e], e.global);
+				(e.global ? rightEventsGroup : leftEventsGroup).add(lastEvents);
 			}
 		}
 
@@ -2277,6 +2283,9 @@ class Charter extends UIState {
 
 	public function buildEvents() {
 		PlayState.SONG.events = [];
+
+		for (ce in leftEventsGroup.members) for (e in ce.events) e.global = false;
+		for (ce in rightEventsGroup.members) for (e in ce.events) e.global = true;
 
 		var events:Array<CharterEvent> = leftEventsGroup.members.concat(rightEventsGroup.members);
 		events.sort(rightEventsGroup.sortEventsFilter.bind(FlxSort.ASCENDING));

@@ -21,8 +21,6 @@
 
 		<!-- Documentation and other features -->
 		<git name="away3d" url="https://github.com/CodenameCrew/away3d" />
-		<git name="funkin.vis" url="https://github.com/CodenameCrew/cne-funkVis" />
-		<git name="grig.audio" url="https://gitlab.com/haxe-grig/grig.audio.git" ref="57f5d47f2533fd0c3dcd025a86cb86c0dfa0b6d2" />
 		<!-- <lib name="dox" /> -->
 		<lib name="markdown" />
 		<lib name="hxcpp-debug-server" />
