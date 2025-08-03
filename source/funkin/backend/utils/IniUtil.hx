@@ -13,7 +13,7 @@ class IniUtil {
 	public static function parseStringToMap(map:Map<String, Map<String, String>>, data:String) {
 		var section:Map<String, String> = null;
 
-		var regexSec = ~/\\[(.+)\\]/g, regexVal = ~/(.+)=(.+)/g, quote = ~/[\\'"](.+)[\\'"]/g, iln = 0;
+		var regexSec = ~/^\[(.+)\]/g, regexVal = ~/^([^#;].+)=(.+)/g, quote = ~/[\\'"](.+)[\\'"]/g, iln = 0;
 		do {
 			var line = data.substring(iln, ((iln = data.indexOf('\n', iln) + 1) == 0 ? data.length : iln - 1));
 			if (regexSec.match(line)) {

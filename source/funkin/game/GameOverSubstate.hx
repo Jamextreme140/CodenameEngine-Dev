@@ -44,9 +44,9 @@ class GameOverSubstate extends MusicBeatSubstate
 		this.y = y;
 		this.player = player;
 		this.characterName = character != null ? character : Flags.DEFAULT_GAMEOVER_CHARACTER;
-		this.gameOverSong = gameOverSong != null ? gameOverSong : Flags.DEFAULT_GAMEOVER_SONG;
-		this.lossSFXName = lossSFX != null ? lossSFX : Flags.DEFAULT_GAMEOVER_LOSS_SFX;
-		this.retrySFX = retrySFX != null ? retrySFX : Flags.DEFAULT_GAMEOVER_RETRY_SFX;
+		this.gameOverSong = gameOverSong != null ? gameOverSong : Flags.DEFAULT_GAMEOVER_MUSIC;
+		this.lossSFXName = lossSFX != null ? lossSFX : Flags.DEFAULT_GAMEOVERSFX_SOUND;
+		this.retrySFX = retrySFX != null ? retrySFX : Flags.DEFAULT_GAMEOVEREND_SOUND;
 	}
 
 	public override function create()

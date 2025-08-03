@@ -683,6 +683,7 @@ class FlxSound extends FlxBasic {
 			pitch = _pitch;
 			#end
 
+			updateTransform();
 			_channel.soundTransform = _transform;
 			_channel.__lastPeakTime = -10;
 			_channel.__leftPeak = 0;

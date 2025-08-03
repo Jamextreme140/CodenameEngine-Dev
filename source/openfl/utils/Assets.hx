@@ -243,6 +243,10 @@ class Assets
 
 	public static function getMusic(id:String, useCache:Bool = true, staticFallback:Bool = true):Sound
 	{
+		if (useCache && staticFallback && cache.enabled && cache.hasSound(id)) {
+			var sound = cache.getSound(id);
+			if (isValidSound(sound)) return sound;
+		}
 		#if (lime_vorbis && lime > "7.9.0" && !macro)
 		if (Options.streamedMusic) {
 			var path = getPath(id);

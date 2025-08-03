@@ -367,17 +367,38 @@ class CharacterAnimButton extends UIButton {
 		var animData:AnimData = parent.character.animDatas[anim];
 		var oldIndices:Array<Int> = animData.indices.copy();
 
+		var maxFrameIndex = parent.character.frames.frames.length - 1;
+		for (index in indicies) {
+			if (index < 0 || index > maxFrameIndex) {
+				Logs.trace('[changeIndicies] Invalid frame index $index (max allowed: $maxFrameIndex). Change aborted.', ERROR, RED);
+				return;
+			}
+		}
+
 		animData.indices = indicies;
 
-		__refreshAnimation();
+		try {
+			__refreshAnimation();
 
-		if (parent.character.getAnimName() == anim)
-			CharacterEditor.instance.playAnimation(anim);
-		
+			if (parent.character.getAnimName() == anim)
+				CharacterEditor.instance.playAnimation(anim);
+		} catch (e:Dynamic) {
+			Logs.trace('[changeIndicies] Error occurred: $e. Reverting to old indices.', WARNING, YELLOW);
+
+			animData.indices = oldIndices;
+			__refreshAnimation();
+			if (parent.character.getAnimName() == anim)
+				CharacterEditor.instance.playAnimation(anim);
+
+			return;
+		}
+
 		indicesTextBox.label.text = animData.indices.join(", ");
 
-		if (addToUndo) CharacterEditor.undos.addToUndo(CAnimEditIndices(ID, oldIndices, indicies));
+		if (addToUndo)
+			CharacterEditor.undos.addToUndo(CAnimEditIndices(ID, oldIndices, indicies));
 	}
+
 
 	public inline function refreshFlxAnimationFrames(flxAnimation:FlxAnimation, animData:AnimData) @:privateAccess {
 		try {

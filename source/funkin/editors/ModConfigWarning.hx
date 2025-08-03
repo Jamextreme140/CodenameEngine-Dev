@@ -10,34 +10,41 @@ class ModConfigWarning extends UIState {
 	var goToState:Class<FlxState>;
 
 	public static inline var defaultModConfigText = 
-'[Common]
-MOD_NAME="YOUR MOD NAME HERE"
-MOD_DESCRIPTION="YOUR MOD DESCRIPTION HERE"
-MOD_AUTHOR="YOU/YOUR TEAM HERE"
-MOD_VERSION="YOUR MOD\'S VERSION HERE"
+'[Common] # This section applies the \'MOD_\' prefix to the flags so you don\'t have to.
+NAME="YOUR MOD NAME HERE"
+DESCRIPTION="YOUR MOD DESCRIPTION HERE"
+AUTHOR="YOU/YOUR TEAM HERE"
+VERSION="YOUR MOD\'S VERSION HERE"
 
 # DO NOT EDIT!! this is used to check for version compatibility!
-MOD_API_VERSION=1
+API_VERSION=1
 
-MOD_DOWNLOAD_LINK="YOUR MOD PAGE LINK HERE"
+DOWNLOAD_LINK="YOUR MOD PAGE LINK HERE"
 
 # Not supported yet
 ;MOD_ICON64="path/to/icon64.png"
 ;MOD_ICON32="path/to/icon32.png"
 ;MOD_ICON16="path/to/icon16.png"
-MOD_ICON="path/to/icon.png"
+ICON="path/to/icon.png"
 
-[Flags]
+[Flags] # This section doesn\'t apply any prefix.
 DISABLE_WARNING_SCREEN=true
 # Set this to false if you want to bring back the warning state (prior to 1.0.0)
 # NOTE: Beta warning state has been renamed from BetaWarningState.hx to WarningState.hx
 DISABLE_LANGUAGES=true
 # Some people might not translate their mods, but if you do then you may set this to false
 
-[Discord]
-MOD_DISCORD_CLIENT_ID=""
-MOD_DISCORD_LOGO_KEY=""
-MOD_DISCORD_LOGO_TEXT=""';
+[Discord] # This section applies the \'MOD_DISCORD_\' prefix to the flags so you don\'t have to.
+CLIENT_ID=""
+LOGO_KEY=""
+LOGO_TEXT=""
+
+[StateRedirects] # This section is used for state redirecting, see examples below.
+;StoryMenuState="funkin.menus.FreeplayState"
+;FreeplayState="scriptedFreeplayState"
+
+[StateRedirects.force] # Use this if you want to override redirects set by subsequent addons/mods
+';
 
 	public function new(library:ModsFolderLibrary, ?goToState:Class<FlxState>) {
 		super();

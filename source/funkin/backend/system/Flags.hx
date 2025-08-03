@@ -34,6 +34,8 @@ class Flags {
 	public static var MOD_DISCORD_CLIENT_ID:String = "";
 	public static var MOD_DISCORD_LOGO_KEY:String = "";
 	public static var MOD_DISCORD_LOGO_TEXT:String = "";
+
+	@:bypass public static var MOD_REDIRECT_STATES:Map<String, String> = [];
 	// -- Codename's Default Flags --
 	public static var CURRENT_API_VERSION:Int = 1;
 	public static var COMMIT_NUMBER:Int = GitCommitMacro.commitNumber;
@@ -123,9 +125,6 @@ class Flags {
 
 	@:also(funkin.game.Character.FALLBACK_DEAD_CHARACTER)
 	public static var DEFAULT_GAMEOVER_CHARACTER:String = "bf-dead";
-	public static var DEFAULT_GAMEOVER_SONG:String = "gameOver";
-	public static var DEFAULT_GAMEOVER_LOSS_SFX:String = "gameOverSFX";
-	public static var DEFAULT_GAMEOVER_RETRY_SFX:String = "gameOverEnd";
 
 	public static var DEFAULT_CAM_ZOOM_INTERVAL:Int = 1;
 	public static var DEFAULT_CAM_ZOOM_OFFSET:Float = 0;
@@ -157,6 +156,11 @@ class Flags {
 	public static var BOP_ICON_SCALE:Float = 1.2;
 	public static var ICON_OFFSET:Float = 26;
 	public static var ICON_LERP:Float = 0.33;
+
+	public static var DEFAULT_PREPARE_SPRITE:String = null;
+	public static var DEFAULT_READY_SPRITE:String = 'game/ready';
+	public static var DEFAULT_SET_SPRITE:String = 'game/set';
+	public static var DEFAULT_GO_SPRITE:String = 'game/go';
 
 	public static var CAM_BOP_STRENGTH:Float = 0.015;
 	public static var HUD_BOP_STRENGTH:Float = 0.03;
@@ -200,36 +204,58 @@ class Flags {
 	public static var URL_FNF_ITCH:String = "https://ninja-muffin24.itch.io/funkin";
 
 	/**
-	 * Default editor sound paths
+	 * Default audio paths
 	 */
-	public static var DEFAULT_EDITOR_AUTOSAVE_SOUND = "editors/autosave";
-	public static var DEFAULT_EDITOR_BUTTONCLICK_SOUND = "editors/buttonClick";
-	public static var DEFAULT_EDITOR_CLICK_SOUND = "editors/click";
-	public static var DEFAULT_EDITOR_COPY_SOUND = "editors/copy";
-	public static var DEFAULT_EDITOR_CUT_SOUND = "editors/cut";
-	public static var DEFAULT_EDITOR_DELETE_SOUND = "editors/delete";
-	public static var DEFAULT_EDITOR_OFFSETDRAG_SOUND = "editors/offsetDrag";
-	public static var DEFAULT_EDITOR_PASTE_SOUND = "editors/paste";
-	public static var DEFAULT_EDITOR_REDO_SOUND = "editors/redo";
-	public static var DEFAULT_EDITOR_SAVE_SOUND = "editors/save";
-	public static var DEFAULT_EDITOR_TEXTREMOVE_SOUND = "editors/textRemove";
-	public static var DEFAULT_EDITOR_TEXTTYPE_SOUND = "editors/textType";
-	public static var DEFAULT_EDITOR_UNDO_SOUND = "editors/undo";
-	public static var DEFAULT_EDITOR_WINDOWAPPEAR_SOUND = "editors/windowAppear";
-	public static var DEFAULT_EDITOR_WINDOWCLOSE_SOUND = "editors/windowClose";
-	public static var DEFAULT_EDITOR_DROPDOWNAPPEAR_SOUND = "editors/dropdownAppear";
-	public static var DEFAULT_CHARTER_HITSOUND_SOUND = "editors/charter/hitsound";
-	public static var DEFAULT_CHARTER_METRONOME_SOUND = "editors/charter/metronome";
-	public static var DEFAULT_CHARTER_NOTEDELETE_SOUND = "editors/charter/noteDelete";
-	public static var DEFAULT_CHARTER_NOTEPLACE_SOUND = "editors/charter/notePlace";
-	public static var DEFAULT_CHARTER_SCROLL_SOUND = "editors/charter/scroll";
-	public static var DEFAULT_CHARTER_SNAPPINGCHANGE_SOUND = "editors/charter/snappingChange";
-	public static var DEFAULT_CHARTER_STRUMLOCK_SOUND = "editors/charter/strumLock";
-	public static var DEFAULT_CHARTER_STRUMUNLOCK_SOUND = "editors/charter/strumUnlock";
-	public static var DEFAULT_CHARTER_SUSTAINADD_SOUND = "editors/charter/sustainAdd";
-	public static var DEFAULT_CHARTER_SUSTAINDELETE_SOUND = "editors/charter/sustainDelete";
-	public static var DEFAULT_CHARACTER_GHOSTDISABLE_SOUND = "editors/character/ghostDisable";
-	public static var DEFAULT_CHARACTER_GHOSTENABLE_SOUND = "editors/character/ghostEnable";
+	public static var DEFAULT_MENU_MUSIC:String = "freakyMenu";
+	public static var DEFAULT_PAUSE_MENU_MUSIC:String = "breakfast";
+	public static var DEFAULT_GAMEOVER_MUSIC:String = "gameOver";
+
+	public static var DEFAULT_MISS1_SOUND:String = "missnote1";
+	public static var DEFAULT_MISS2_SOUND:String = "missnote2";
+	public static var DEFAULT_MISS3_SOUND:String = "missnote3";
+	public static var DEFAULT_INTRO1_SOUND:String = "intro1";
+	public static var DEFAULT_INTRO2_SOUND:String = "intro2";
+	public static var DEFAULT_INTRO3_SOUND:String = "intro3";
+	public static var DEFAULT_INTROGO_SOUND:String = "introGo";
+	public static var DEFAULT_GAMEOVERSFX_SOUND:String = "gameOverSFX";
+	public static var DEFAULT_GAMEOVEREND_SOUND:String = "gameOverEnd";
+
+	public static var DEFAULT_MENU_SCROLL_SOUND:String = "menu/scroll";
+	public static var DEFAULT_MENU_CONFIRM_SOUND:String = "menu/confirm";
+	public static var DEFAULT_MENU_CANCEL_SOUND:String = "menu/cancel";
+	public static var DEFAULT_MENU_VOLUME_SOUND:String = "menu/volume";
+
+	public static var DEFAULT_EDITOR_CHECKBOXCHECKED_SOUND:String = "editors/checkboxChecked";
+	public static var DEFAULT_EDITOR_CHECKBOXUNCHECKED_SOUND:String = "editors/checkboxUnchecked";
+	public static var DEFAULT_EDITOR_WARNING_SOUND:String = "editors/warningMenu";
+	public static var DEFAULT_EDITOR_AUTOSAVE_SOUND:String = "editors/autosave";
+	public static var DEFAULT_EDITOR_BUTTONCLICK_SOUND:String = "editors/buttonClick";
+	public static var DEFAULT_EDITOR_CLICK_SOUND:String = "editors/click";
+	public static var DEFAULT_EDITOR_COPY_SOUND:String = "editors/copy";
+	public static var DEFAULT_EDITOR_CUT_SOUND:String = "editors/cut";
+	public static var DEFAULT_EDITOR_DELETE_SOUND:String = "editors/delete";
+	public static var DEFAULT_EDITOR_OFFSETDRAG_SOUND:String = "editors/offsetDrag";
+	public static var DEFAULT_EDITOR_PASTE_SOUND:String = "editors/paste";
+	public static var DEFAULT_EDITOR_REDO_SOUND:String = "editors/redo";
+	public static var DEFAULT_EDITOR_SAVE_SOUND:String = "editors/save";
+	public static var DEFAULT_EDITOR_TEXTREMOVE_SOUND:String= "editors/textRemove";
+	public static var DEFAULT_EDITOR_TEXTTYPE_SOUND:String = "editors/textType";
+	public static var DEFAULT_EDITOR_UNDO_SOUND:String = "editors/undo";
+	public static var DEFAULT_EDITOR_WINDOWAPPEAR_SOUND:String = "editors/windowAppear";
+	public static var DEFAULT_EDITOR_WINDOWCLOSE_SOUND:String = "editors/windowClose";
+	public static var DEFAULT_EDITOR_DROPDOWNAPPEAR_SOUND:String = "editors/dropdownAppear";
+	public static var DEFAULT_CHARTER_HITSOUND_SOUND:String = "editors/charter/hitsound";
+	public static var DEFAULT_CHARTER_METRONOME_SOUND:String = "editors/charter/metronome";
+	public static var DEFAULT_CHARTER_NOTEDELETE_SOUND:String = "editors/charter/noteDelete";
+	public static var DEFAULT_CHARTER_NOTEPLACE_SOUND:String = "editors/charter/notePlace";
+	public static var DEFAULT_CHARTER_SCROLL_SOUND:String = "editors/charter/scroll";
+	public static var DEFAULT_CHARTER_SNAPPINGCHANGE_SOUND:String = "editors/charter/snappingChange";
+	public static var DEFAULT_CHARTER_STRUMLOCK_SOUND:String = "editors/charter/strumLock";
+	public static var DEFAULT_CHARTER_STRUMUNLOCK_SOUND:String = "editors/charter/strumUnlock";
+	public static var DEFAULT_CHARTER_SUSTAINADD_SOUND:String = "editors/charter/sustainAdd";
+	public static var DEFAULT_CHARTER_SUSTAINDELETE_SOUND:String = "editors/charter/sustainDelete";
+	public static var DEFAULT_CHARACTER_GHOSTDISABLE_SOUND:String = "editors/character/ghostDisable";
+	public static var DEFAULT_CHARACTER_GHOSTENABLE_SOUND:String = "editors/character/ghostEnable";
 
 	public static var DEFAULT_GLSL_VERSION:String = "120";
 	@:also(funkin.backend.utils.HttpUtil.userAgent)
@@ -242,9 +268,17 @@ class Flags {
 	@:bypass public static var customFlags:Map<String, String> = [];
 
 	public static function loadFromData(flags:Map<String, String>, data:String) {
+		if (!(data.length > 0)) return;
 		var res = IniUtil.parseString(data);
 
-		for (section in res) for (key => value in section) flags[key] = value;
+		if (res.exists("Common")) for (key => value in res.get("Common")) flags["MOD_" + key] = value;
+		if (res.exists("Discord")) for (key => value in res.get("Discord")) flags["MOD_DISCORD_" + key] = value;
+		if (res.exists("Flags")) for (key => value in res.get("Flags")) flags[key] = value;
+
+		if (res.exists("StateRedirects")) for (key => value in res.get("StateRedirects")) 
+			if (!Flags.MOD_REDIRECT_STATES.exists(key)) Flags.MOD_REDIRECT_STATES.set(key, value);
+		if (res.exists("StateRedirects.force")) for (key => value in res.get("StateRedirects.force")) 
+			Flags.MOD_REDIRECT_STATES.set(key, value);
 	}
 
 	public static function loadFromDatas(datas:Array<String>) {
@@ -288,6 +322,7 @@ class Flags {
 				if (l.exists(Paths.ini("config/modpack"), AssetType.TEXT))
 					flagsTxt = l.getAsset(Paths.ini("config/modpack"), AssetType.TEXT);
 				if (cast(l, IModsAssetLibrary).modName == "assets") continue;
+				if (cast(l, IModsAssetLibrary).modName == "source") continue;
 
 				if (cast(l, IModsAssetLibrary).modName == ModsFolder.currentModFolder) {
 					var flags:Map<String, String> = [];

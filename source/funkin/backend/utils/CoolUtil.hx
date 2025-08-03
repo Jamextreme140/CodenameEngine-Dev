@@ -405,11 +405,12 @@ final class CoolUtil
 	/**
 	 * Modifies a lerp ratio based on current FPS to keep a stable speed on higher framerate.
 	 * @param ratio Ratio
+	 * @param delta Delta/Elapsed for the fps-modified ratio (Optional)
 	 * @return FPS-Modified Ratio
 	 */
-	@:noUsing public static inline function getFPSRatio(ratio:Float):Float {
-		return 1.0 - Math.pow(1.0 - ratio, FlxG.elapsed * 60);
-	}
+	@:noUsing public static inline function getFPSRatio(ratio:Float, ?delta:Float):Float
+		return 1.0 - Math.pow(1.0 - ratio, (delta == null ? FlxG.elapsed : delta) * 60);
+
 	/**
 	 * Tries to get a color from a `Dynamic` variable.
 	 * @param c `Dynamic` color.
@@ -454,7 +455,7 @@ final class CoolUtil
 	@:noUsing public static function playMenuSong(fadeIn:Bool = false) {
 		if (FlxG.sound.music == null || !FlxG.sound.music.playing)
 		{
-			playMusic(Paths.music('freakyMenu'), true, fadeIn ? 0 : 1, true, 102);
+			playMusic(Paths.music(Flags.DEFAULT_MENU_MUSIC), true, fadeIn ? 0 : 1, true, 102);
 			if (fadeIn)
 				FlxG.sound.music.fadeIn(4, 0, 0.7);
 		}
@@ -520,14 +521,14 @@ final class CoolUtil
 	 * @param volume At which volume it should play
 	 */
 	@:noUsing public static inline function playMenuSFX(menuSFX:CoolSfx = SCROLL, volume:Float = 1):FlxSound {
-		return FlxG.sound.play(Paths.sound('menu/' + switch(menuSFX) {
-			case CONFIRM:	'confirm';
-			case CANCEL:	'cancel';
-			case SCROLL:	'scroll';
-			case CHECKED:	'checkboxChecked';
-			case UNCHECKED:	'checkboxUnchecked';
-			case WARNING:	'warningMenu';
-			default: 		'scroll';
+		return FlxG.sound.play(Paths.sound(switch(menuSFX) {
+			case CONFIRM:	Flags.DEFAULT_MENU_CONFIRM_SOUND;
+			case CANCEL:	Flags.DEFAULT_MENU_CANCEL_SOUND;
+			case SCROLL:	Flags.DEFAULT_MENU_SCROLL_SOUND;
+			case CHECKED:	Flags.DEFAULT_EDITOR_CHECKBOXCHECKED_SOUND;
+			case UNCHECKED:	Flags.DEFAULT_EDITOR_CHECKBOXUNCHECKED_SOUND;
+			case WARNING:	Flags.DEFAULT_EDITOR_WARNING_SOUND;
+			default: 		Flags.DEFAULT_MENU_SCROLL_SOUND;
 		}), volume * Options.volumeSFX);
 	}
 

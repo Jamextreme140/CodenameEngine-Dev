@@ -19,7 +19,7 @@ typedef AudioAnalyzerCallback = Int->Int->Void;
  * FlxSound.amplitude does work in CNE so if any case if your only checking for peak of current
  * time, use that instead.
  */
-class AudioAnalyzer {
+final class AudioAnalyzer {
 	/**
 	 * Get bytes from an audio buffer with specified position and wordSize
 	 * @param buffer The audio buffer to get byte from.
@@ -44,14 +44,14 @@ class AudioAnalyzer {
 	 * @param sampleRate Sample Rate input.
 	 * @param barCount How much bars to get.
 	 * @param levels The output for getting the values, to avoid memory leaks (Optional).
-	 * @param delta How much delta for smoothen the values from the previous levels values (Optional).
-	 * @param minDb The minimum decibels to cap (Optional, default -70.0).
-	 * @param maxDb The maximum decibels to cap (Optional, default -10.0).
-	 * @param minFreq The minimum frequency to cap (Optional, default 20.0).
-	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0).
-	 * @return Output of levels/bars
+	 * @param ratio How much ratio for smoothen the values from the previous levels values (Optional, use CoolUtil.getFPSRatio(1 - ratio) to simulate web AnalyserNode.smoothingTimeConstant, 0.35 of smoothingTime works most of the time).
+	 * @param minDb The minimum decibels to cap (Optional, default -63.0, -120 is pure silence).
+	 * @param maxDb The maximum decibels to cap (Optional, default -10.0, Above 0 is not recommended).
+	 * @param minFreq The minimum frequency to cap (Optional, default 20.0, Below 8.0 is not recommended).
+	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0, Above 23000.0 is not recommended).
+	 * @return Output of levels/bars that ranges from 0 to 1
 	 */
-	public static function getLevelsFromFrequencies(frequencies:Array<Float>, sampleRate:Int, barCount:Int, ?levels:Array<Float>, delta = 0.0, minDb = -70.0, maxDb = -10.0, minFreq = 20.0, maxFreq = 22000.0):Array<Float> {
+	public static function getLevelsFromFrequencies(frequencies:Array<Float>, sampleRate:Int, barCount:Int, ?levels:Array<Float>, ratio = 0.0, minDb = -63.0, maxDb = -10.0, minFreq = 20.0, maxFreq = 22000.0):Array<Float> {
 		if (levels == null) levels = [];
 		levels.resize(barCount);
 
@@ -78,8 +78,8 @@ class AudioAnalyzer {
 			}
 			i1 = Math.floor(s1 = s2);
 
-			v = ((20 * Math.log(v) / 2.302585092994046) - minDb) / dbRange;
-			if (delta > 0 && delta < 1 && v < levels[i]) levels[i] -= Math.pow(levels[i] - v, 2.302585092994046) * delta;
+			v = CoolUtil.bound(((20 * Math.log(v) / 2.302585092994046) - minDb) / dbRange, 0, 1);
+			if (ratio > 0 && ratio < 1 && v < levels[i]) levels[i] -= (levels[i] - v) * ratio;
 			else levels[i] = v;
 		}
 
@@ -98,6 +98,12 @@ class AudioAnalyzer {
 	 * Has to be power of two, or it won't work.
 	 */
 	public var fftN(default, set):Int;
+
+	/**
+	 * Should fft related stuff use blackman windowing? (Web AnalyzerNode windowing).
+	 * Most of the time looks bad with this.
+	 */
+	public var useWindowingFFT:Bool = false;
 
 	/**
 	 * The current buffer from sound.
@@ -139,7 +145,6 @@ class AudioAnalyzer {
 	var __logN:Int;
 	var __freqSamples:Array<Float>;
 	var __reverseIndices:Array<Int> = [];
-	var __factors:Array<Int> = [];
 	var __windows:Array<Float> = [];
 	var __twiddleReals:Array<Float> = [];
 	var __twiddleImags:Array<Float> = [];
@@ -152,7 +157,7 @@ class AudioAnalyzer {
 	/**
 	 * Creates an analyzer for specified FlxSound
 	 * @param sound An FlxSound to analyze.
-	 * @param fftN How much samples for fft to get (Optional, default 2048).
+	 * @param fftN How much samples for fft to get (Optional, default 2048, 4096 is recommended for highest quality).
 	 */
 	public function new(sound:FlxSound, fftN = 2048) {
 		this.sound = sound;
@@ -196,19 +201,6 @@ class AudioAnalyzer {
 			__twiddleImags[i] = Math.sin(a);
 		}
 
-		__factors.resize(0);
-
-		var inv = fftN;
-		/*while (inv % 4 == 0) {
-			__factors.push(4);
-			inv >>= 2;
-		}*/
-
-		while (inv % 2 == 0) {
-			__factors.push(2);
-			inv >>= 1;
-		}
-
 		return fftN;
 	}
 
@@ -233,15 +225,15 @@ class AudioAnalyzer {
 	 * @param startPos Start Position to get from sound in milliseconds.
 	 * @param barCount How much bars to get.
 	 * @param levels The output for getting the values, to avoid memory leaks (Optional).
-	 * @param delta How much delta for smoothen the values from the previous levels values (Optional).
-	 * @param minDb The minimum decibels to cap (Optional, default -70.0).
-	 * @param maxDb The maximum decibels to cap (Optional, default -10.0).
-	 * @param minFreq The minimum frequency to cap (Optional, default 20.0).
-	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0).
-	 * @return Output of levels/bars
+	 * @param ratio How much ratio for smoothen the values from the previous levels values (Optional, use CoolUtil.getFPSRatio(1 - ratio) to simulate web AnalyserNode.smoothingTimeConstant, 0.35 of smoothingTime works most of the time).
+	 * @param minDb The minimum decibels to cap (Optional, default -63.0, -120 is pure silence).
+	 * @param maxDb The maximum decibels to cap (Optional, default -10.0, Above 0 is not recommended).
+	 * @param minFreq The minimum frequency to cap (Optional, default 20.0, Below 8.0 is not recommended).
+	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0, Above 23000.0 is not recommended).
+	 * @return Output of levels/bars that ranges from 0 to 1
 	 */
-	public function getLevels(startPos:Float, barCount:Int, ?levels:Array<Float>, ?delta:Float, ?minDb:Float, ?maxDb:Float, ?minFreq:Float, ?maxFreq:Float):Array<Float>
-		return inline getLevelsFromFrequencies(__frequencies = getFrequencies(startPos, __frequencies), buffer.sampleRate, barCount, levels, delta, minDb, maxDb, minFreq, maxFreq);
+	public function getLevels(startPos:Float, barCount:Int, ?levels:Array<Float>, ?ratio:Float, ?minDb:Float, ?maxDb:Float, ?minFreq:Float, ?maxFreq:Float):Array<Float>
+		return inline getLevelsFromFrequencies(__frequencies = getFrequencies(startPos, __frequencies), buffer.sampleRate, barCount, levels, ratio, minDb, maxDb, minFreq, maxFreq);
 
 	/**
 	 * Gets frequencies from an attached FlxSound from startPos.
@@ -250,105 +242,44 @@ class AudioAnalyzer {
 	 * @return Output of frequencies
 	 */
 	public function getFrequencies(startPos:Float, ?frequencies:Array<Float>):Array<Float> {
-		// https://github.com/FunkinCrew/grig.audio/commit/8567c4dad34cfeaf2ff23fe12c3796f5db80685e
-		inline function butterfly4PointOptimized(i0:Int, i1:Int, i2:Int, i3:Int, w1_idx:Int, w2_idx:Int, w3_idx:Int) {
-			// Load input values
-			var x0r = __freqReals[i0];
-			var x0i = __freqImags[i0];
-
-			// Apply twiddle factors to x1, x2, x3
-			// x1 = workingData[i1] * twiddle1
-			var x1r_raw = __freqReals[i1];
-			var x1i_raw = __freqImags[i1];
-			var tw1r = __twiddleReals[w1_idx];
-			var tw1i = __twiddleImags[w1_idx];
-			var x1r = x1r_raw * tw1r - x1i_raw * tw1i;
-			var x1i = x1r_raw * tw1i + x1i_raw * tw1r;
-
-			// x2 = workingData[i2] * twiddle2
-			var x2r_raw = __freqReals[i2];
-			var x2i_raw = __freqImags[i2];
-			var tw2r = __twiddleReals[w2_idx];
-			var tw2i = __twiddleImags[w2_idx];
-			var x2r = x2r_raw * tw2r - x2i_raw * tw2i;
-			var x2i = x2r_raw * tw2i + x2i_raw * tw2r;
-
-			// x3 = workingData[i3] * twiddle3
-			var x3r_raw = __freqReals[i3];
-			var x3i_raw = __freqImags[i3];
-			var tw3r = __twiddleReals[w3_idx];
-			var tw3i = __twiddleImags[w3_idx];
-			var x3r = x3r_raw * tw3r - x3i_raw * tw3i;
-			var x3i = x3r_raw * tw3i + x3i_raw * tw3r;
-
-			// Compute intermediate values for 4-point DFT
-			var t0r = x0r + x2r;  // (x0 + x2).real
-			var t0i = x0i + x2i;  // (x0 + x2).imag
-			var t1r = x0r - x2r;  // (x0 - x2).real
-			var t1i = x0i - x2i;  // (x0 - x2).imag
-			var t2r = x1r + x3r;  // (x1 + x3).real
-			var t2i = x1i + x3i;  // (x1 + x3).imag
-			var t3r = x1r - x3r;  // (x1 - x3).real
-			var t3i = x1i - x3i;  // (x1 - x3).imag
-
-			// Apply j multiplication: j * (a + jb) = -b + ja
-			var jt3r = -t3i;  // j * t3.real = -t3.imag
-			var jt3i = t3r;   // j * t3.imag = t3.real
-
-			// Final 4-point DFT butterfly outputs
-			__freqReals[i0] = t0r + t2r;        // X[k]
-			__freqImags[i0] = t0i + t2i;
-			__freqReals[i1] = t1r - jt3r;       // X[k + N/4]
-			__freqImags[i1] = t1i - jt3i;
-			__freqReals[i2] = t0r - t2r;        // X[k + N/2]
-			__freqImags[i2] = t0i - t2i;
-			__freqReals[i3] = t1r + jt3r;       // X[k + 3N/4]
-			__freqImags[i3] = t1i + jt3i;
-		}
-
-		inline function butterfly2PointOptimized(i0:Int, i1:Int, w_idx:Int) {
-			var tempr = __freqReals[i1] * __twiddleReals[w_idx] - __freqImags[i1] * __twiddleImags[w_idx];
-			var tempi = __freqReals[i1] * __twiddleImags[w_idx] + __freqImags[i1] * __twiddleReals[w_idx];
-			__freqReals[i1] = __freqReals[i0] - tempr;
-			__freqImags[i1] = __freqImags[i0] - tempi;
-			__freqReals[i0] += tempr;
-			__freqImags[i0] += tempi;
-		}
-
 		__freqSamples = getSamples(startPos, fftN, true, __freqSamples);
 
 		if (frequencies == null) frequencies = [];
 		frequencies.resize(__N2);
 
-		if (fftN == 1) frequencies[0] = __freqSamples[0];
-		else {
-			var n;
-			for (i in 0...fftN) {
-				n = __reverseIndices[i];
-				__freqReals[n] = __freqSamples[i] * __windows[i];
-				__freqImags[n] = 0;
-			}
-
-			var size = 1, s2, start, t;
-			for (radix in __factors) {
-				n = Math.floor(fftN / (size *= radix));
-				s2 = size >> (radix >> 1);
-				if (radix == 4) for (i in 0...n) {
-					start = i * size;
-					for (k in 0...s2)
-						butterfly4PointOptimized(t = start + k, t = (t + s2), t = (t + s2), t = (t + s2),
-							(k * n) % fftN, (2 * k * n) % fftN, (3 * k * n) % fftN);
-				}
-				else for (i in 0...n) {
-					start = i * size;
-					for (k in 0...s2) butterfly2PointOptimized(t = start + k, t = (t + s2), (k * n) % fftN);
-				}
-			}
-
-			var inv = 1.0 / fftN;
-			frequencies[0] = Math.sqrt(__freqReals[0] * __freqReals[0] + __freqImags[0] * __freqImags[0]) * inv;
-			for (i in 1...__N2) frequencies[i] = 2 * Math.sqrt(__freqReals[i] * __freqReals[i] + __freqImags[i] * __freqImags[i]) * inv;
+		var i = fftN;
+		while (i > 0) {
+			i--;
+			__freqReals[__reverseIndices[i]] = __freqSamples[i] * (useWindowingFFT ? __windows[i] : 1);
+			__freqImags[i] = 0;
 		}
+
+		var size = 1, n = fftN, half = 1, k, i0, i1, t, tr:Float, ti:Float;
+		while ((size <<= 1) < fftN) {
+			n >>= 1;
+			i = 0;
+			while (i < fftN) {
+				k = 0;
+				while (k < half) {
+					i1 = (i0 = i + k) + half;
+					t = (k * n) % fftN;
+
+					tr = __freqReals[i1] * __twiddleReals[t] - __freqImags[i1] * __twiddleImags[t];
+					ti = __freqReals[i1] * __twiddleImags[t] + __freqImags[i1] * __twiddleReals[t];
+					__freqReals[i1] = __freqReals[i0] - tr;
+					__freqImags[i1] = __freqImags[i0] - ti;
+					__freqReals[i0] += tr;
+					__freqImags[i0] += ti;
+
+					k++;
+				}
+				i += size;
+			}
+			half = size;
+		}
+
+		frequencies[i = 0] = Math.sqrt(__freqReals[0] * __freqReals[0] + __freqImags[0] * __freqImags[0]) * (tr = 1.0 / fftN);
+		while (++i < __N2) frequencies[i] = 2 * Math.sqrt(__freqReals[i] * __freqReals[i] + __freqImags[i] * __freqImags[i]) * tr;
 
 		return frequencies;
 	}
@@ -462,7 +393,7 @@ class AudioAnalyzer {
 
 	#if lime_cffi
 	inline function __canReadStream():Bool
-		@:privateAccess return sound._source != null && sound._source.__backend != null && sound._source.__backend.streamTimer != null;
+		@:privateAccess return sound._source != null && sound._source.__backend != null && sound._source.__backend.playing;
 
 	inline function __readStream(startPos:Float, endPos:Float, callback:AudioAnalyzerCallback):Float @:privateAccess {
 		var backend = sound._source.__backend;

@@ -60,7 +60,7 @@ class PauseSubState extends MusicBeatSubstate
 		pauseScript.setParent(this);
 		pauseScript.load();
 
-		var event = EventManager.get(PauseCreationEvent).recycle('breakfast', menuItems);
+		var event = EventManager.get(PauseCreationEvent).recycle(Flags.DEFAULT_PAUSE_MENU_MUSIC, menuItems);
 		pauseScript.call('create', [event]);
 
 		menuItems = event.options;
