@@ -10,6 +10,10 @@ import lime.media.vorbis.Vorbis;
 import lime.media.vorbis.VorbisFile;
 #end
 
+#if (target.threaded)
+import sys.thread.Mutex;
+#end
+
 typedef AudioAnalyzerCallback = Int->Int->Void;
 
 /**
@@ -49,7 +53,7 @@ final class AudioAnalyzer {
 	 * @param maxDb The maximum decibels to cap (Optional, default -10.0, Above 0 is not recommended).
 	 * @param minFreq The minimum frequency to cap (Optional, default 20.0, Below 8.0 is not recommended).
 	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0, Above 23000.0 is not recommended).
-	 * @return Output of levels/bars that ranges from 0 to 1
+	 * @return Output of levels/bars that ranges from 0 to 1.
 	 */
 	public static function getLevelsFromFrequencies(frequencies:Array<Float>, sampleRate:Int, barCount:Int, ?levels:Array<Float>, ratio = 0.0, minDb = -63.0, maxDb = -10.0, minFreq = 20.0, maxFreq = 22000.0):Array<Float> {
 		if (levels == null) levels = [];
@@ -86,6 +90,138 @@ final class AudioAnalyzer {
 		return levels;
 	}
 
+	static var __reverseIndices:Array<Array<Int>> = [];
+	static var __windows:Array<Array<Float>> = [];
+	static var __twiddleReals:Array<Array<Float>> = [];
+	static var __twiddleImags:Array<Array<Float>> = [];
+	static var __freqReals:Array<Array<Float>> = [];
+	static var __freqImags:Array<Array<Float>> = [];
+	#if (target.threaded)
+	static var __mutex:Mutex = new Mutex();
+	static var __freqCalculating:Int = 0;
+	#end
+
+	/**
+	 * Gets frequencies from the samples.
+	 * @param samples The samples (can be from AudioAnalyzer.getSamples).
+	 * @param fftN How much samples for the fft to get, Has to be power of two, or it won't work.
+	 * @param useWindowing Should fft related stuff use blackman windowing? (Web AnalyzerNode windowing), Most of the time it's not worth it.
+	 * @param frequencies The output for getting the frequencies, to avoid memory leaks (Optional).
+	 * @return Output of frequencies.
+	 */
+	public static function getFrequenciesFromSamples(samples:Array<Float>, fftN = 2048, useWindowing = false, ?frequencies:Array<Float>):Array<Float> {
+		var log = Math.floor(Math.log(fftN) / 0.6931471805599453);
+		if (log == 0) throw "AudioAnalyzer.getFrequenciesFromSamples: Cannot insert a fftN of 1";
+
+		var i = log - 1;
+		fftN = 1 << log;
+
+		#if (target.threaded) __mutex.acquire(); #end
+		var reals:Array<Float> = __freqReals[__freqCalculating], imags:Array<Float> = __freqImags[__freqCalculating];
+		if (reals == null) {
+			__freqReals.push(reals = []);
+			__freqImags.push(imags = []);
+		}
+		__freqCalculating++;
+
+		var reverseIndices:Array<Int> = __reverseIndices[i];
+		var windows:Array<Float> = __windows[i];
+		var twiddleReals:Array<Float> = __twiddleReals[i];
+		var twiddleImags:Array<Float> = __twiddleImags[i];
+
+		if (reverseIndices == null) {
+			__reverseIndices.resize(log);
+			__windows.resize(log);
+			__twiddleReals.resize(log);
+			__twiddleImags.resize(log);
+
+			(reverseIndices = []).resize(fftN);
+			(windows = []).resize(fftN);
+			(twiddleReals = []).resize(fftN);
+			(twiddleImags = []).resize(fftN);
+
+			var f;
+			for (i in 0...fftN) {
+				f = 2 * Math.PI * (i / fftN);
+				windows[i] = 0.42 - 0.5 * Math.cos(f) + 0.08 * Math.cos(2 * f);
+				reverseIndices[i] = __bitReverse(i, log);
+				twiddleReals[i] = Math.cos(-f);
+				twiddleImags[i] = Math.sin(-f);
+			}
+
+			__reverseIndices[i] = reverseIndices;
+			__windows[i] = windows;
+			__twiddleReals[i] = twiddleReals;
+			__twiddleImags[i] = twiddleImags;
+		}
+
+		#if (target.threaded) __mutex.release(); #end
+
+		if (fftN > reals.length) {
+			reals.resize(fftN);
+			imags.resize(fftN);
+		}
+
+		if (frequencies == null) frequencies = [];
+		frequencies.resize(1 << i);
+
+		i = samples.length;
+		while (i > 0) {
+			i--;
+			if (useWindowing) reals[reverseIndices[i]] = samples[i] * windows[i];
+			else reals[reverseIndices[i]] = samples[i];
+			imags[i] = 0;
+		}
+
+		var size = 1, n = fftN, half = 1, k, i0, i1, t, tr:Float, ti:Float;
+		while ((size <<= 1) < fftN) {
+			n >>= 1;
+			i = 0;
+			while (i < fftN) {
+				k = 0;
+				while (k < half) {
+					i1 = (i0 = i + k) + half;
+					t = (k * n) % fftN;
+
+					tr = reals[i1] * twiddleReals[t] - imags[i1] * twiddleImags[t];
+					ti = reals[i1] * twiddleImags[t] + imags[i1] * twiddleReals[t];
+					reals[i1] = reals[i0] - tr;
+					imags[i1] = imags[i0] - ti;
+					reals[i0] += tr;
+					imags[i0] += ti;
+
+					k++;
+				}
+				i += size;
+			}
+			half = size;
+		}
+
+		tr = 1.0 / fftN;
+		i = 1 << (log - 1);
+		while (i > 1) {
+			i--;
+			frequencies[i] = 2 * Math.sqrt(reals[i] * reals[i] + imags[i] * imags[i]) * tr;
+		}
+		frequencies[0] = Math.sqrt(reals[0] * reals[0] + imags[0] * imags[0]) * tr;
+
+		#if (target.threaded) __mutex.acquire(); #end
+		__freqCalculating--;
+		#if (target.threaded) __mutex.release(); #end
+
+		return frequencies;
+	}
+
+	static function __bitReverse(x:Int, log:Int):Int {
+		var y = 0, i = log;
+		while (i > 0) {
+			y = (y << 1) | (x & 1);
+			x >>= 1;
+			i--;
+		}
+		return y;
+	}
+
 	/**
 	 * The current sound to analyze.
 	 */
@@ -97,13 +233,13 @@ final class AudioAnalyzer {
 	 * 
 	 * Has to be power of two, or it won't work.
 	 */
-	public var fftN(default, set):Int;
+	public var fftN:Int;
 
 	/**
 	 * Should fft related stuff use blackman windowing? (Web AnalyzerNode windowing).
 	 * Most of the time looks bad with this.
 	 */
-	public var useWindowingFFT:Bool = false;
+	public var useWindowingFFT:Bool;
 
 	/**
 	 * The current buffer from sound.
@@ -137,31 +273,26 @@ final class AudioAnalyzer {
 
 	// samples
 	var __sampleIndex:Int;
+	var __sampleChannel:Int;
+	var __sampleToValue:Float;
+	var __sampleOutputMerge:Bool;
 	var __sampleOutputLength:Int;
 	var __sampleOutput:Array<Float>;
 
-	// fft
-	var __N2:Int;
-	var __logN:Int;
+	// frequencies
 	var __freqSamples:Array<Float>;
-	var __reverseIndices:Array<Int> = [];
-	var __windows:Array<Float> = [];
-	var __twiddleReals:Array<Float> = [];
-	var __twiddleImags:Array<Float> = [];
-	var __freqReals:Array<Float> = [];
-	var __freqImags:Array<Float> = [];
-
-	// levels
 	var __frequencies:Array<Float>;
 
 	/**
 	 * Creates an analyzer for specified FlxSound
 	 * @param sound An FlxSound to analyze.
 	 * @param fftN How much samples for fft to get (Optional, default 2048, 4096 is recommended for highest quality).
+	 * @param useWindowingFFT Should fft related stuff use blackman windowing? (Web AnalyzerNode windowing).
 	 */
-	public function new(sound:FlxSound, fftN = 2048) {
+	public function new(sound:FlxSound, fftN = 2048, useWindowingFFT = false) {
 		this.sound = sound;
 		this.fftN = fftN;
+		this.useWindowingFFT = useWindowingFFT;
 		__check();
 	}
 
@@ -180,46 +311,6 @@ final class AudioAnalyzer {
 		__max.resize(buffer.channels);
 	}
 
-	inline function set_fftN(v:Int):Int {
-		if (fftN == (fftN = nextPow2(v))) return fftN;
-
-		__logN = Math.floor(Math.log(fftN) / Math.log(2));
-		__N2 = fftN >> 1;
-		__freqReals.resize(fftN);
-		__freqImags.resize(fftN);
-		__reverseIndices.resize(fftN);
-		__windows.resize(fftN);
-		__twiddleReals.resize(fftN);
-		__twiddleImags.resize(fftN);
-
-		var f, a;
-		for (i in 0...fftN) {
-			f = i / (fftN - 1);
-			__windows[i] = 0.42 - 0.5 * Math.cos(2 * Math.PI * f) + 0.08 * Math.cos(4 * Math.PI * f);
-			__reverseIndices[i] = __bitReverse(i);
-			__twiddleReals[i] = Math.cos(a = -2 * Math.PI * i / fftN);
-			__twiddleImags[i] = Math.sin(a);
-		}
-
-		return fftN;
-	}
-
-	inline function nextPow2(x:Int):Int {
-		var p = 1;
-		while (p < x) p <<= 1;
-		return p;
-	}
-
-	inline function __bitReverse(x:Int):Int {
-		var y = 0, i = __logN;
-		while (i > 0) {
-			y = (y << 1) | (x & 1);
-			x >>= 1;
-			i--;
-		}
-		return y;
-	}
-
 	/**
 	 * Gets levels from an attached FlxSound from startPos, basically a minimized of frequencies.
 	 * @param startPos Start Position to get from sound in milliseconds.
@@ -230,7 +321,7 @@ final class AudioAnalyzer {
 	 * @param maxDb The maximum decibels to cap (Optional, default -10.0, Above 0 is not recommended).
 	 * @param minFreq The minimum frequency to cap (Optional, default 20.0, Below 8.0 is not recommended).
 	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0, Above 23000.0 is not recommended).
-	 * @return Output of levels/bars that ranges from 0 to 1
+	 * @return Output of levels/bars that ranges from 0 to 1.
 	 */
 	public function getLevels(startPos:Float, barCount:Int, ?levels:Array<Float>, ?ratio:Float, ?minDb:Float, ?maxDb:Float, ?minFreq:Float, ?maxFreq:Float):Array<Float>
 		return inline getLevelsFromFrequencies(__frequencies = getFrequencies(startPos, __frequencies), buffer.sampleRate, barCount, levels, ratio, minDb, maxDb, minFreq, maxFreq);
@@ -239,50 +330,10 @@ final class AudioAnalyzer {
 	 * Gets frequencies from an attached FlxSound from startPos.
 	 * @param startPos Start Position to get from sound in milliseconds.
 	 * @param frequencies The output for getting the frequencies, to avoid memory leaks (Optional).
-	 * @return Output of frequencies
+	 * @return Output of frequencies.
 	 */
-	public function getFrequencies(startPos:Float, ?frequencies:Array<Float>):Array<Float> {
-		__freqSamples = getSamples(startPos, fftN, true, __freqSamples);
-
-		if (frequencies == null) frequencies = [];
-		frequencies.resize(__N2);
-
-		var i = fftN;
-		while (i > 0) {
-			i--;
-			__freqReals[__reverseIndices[i]] = __freqSamples[i] * (useWindowingFFT ? __windows[i] : 1);
-			__freqImags[i] = 0;
-		}
-
-		var size = 1, n = fftN, half = 1, k, i0, i1, t, tr:Float, ti:Float;
-		while ((size <<= 1) < fftN) {
-			n >>= 1;
-			i = 0;
-			while (i < fftN) {
-				k = 0;
-				while (k < half) {
-					i1 = (i0 = i + k) + half;
-					t = (k * n) % fftN;
-
-					tr = __freqReals[i1] * __twiddleReals[t] - __freqImags[i1] * __twiddleImags[t];
-					ti = __freqReals[i1] * __twiddleImags[t] + __freqImags[i1] * __twiddleReals[t];
-					__freqReals[i1] = __freqReals[i0] - tr;
-					__freqImags[i1] = __freqImags[i0] - ti;
-					__freqReals[i0] += tr;
-					__freqImags[i0] += ti;
-
-					k++;
-				}
-				i += size;
-			}
-			half = size;
-		}
-
-		frequencies[i = 0] = Math.sqrt(__freqReals[0] * __freqReals[0] + __freqImags[0] * __freqImags[0]) * (tr = 1.0 / fftN);
-		while (++i < __N2) frequencies[i] = 2 * Math.sqrt(__freqReals[i] * __freqReals[i] + __freqImags[i] * __freqImags[i]) * tr;
-
-		return frequencies;
-	}
+	public function getFrequencies(startPos:Float, ?frequencies:Array<Float>):Array<Float>
+		return inline getFrequenciesFromSamples(__freqSamples = getSamples(startPos, fftN, true, __freqSamples), fftN, useWindowingFFT, frequencies);
 
 	/**
 	 * Analyzes an attached FlxSound from startPos to endPos in milliseconds to get the amplitudes.
@@ -329,32 +380,49 @@ final class AudioAnalyzer {
 	 * @param startPos Start Position to get from sound in milliseconds.
 	 * @param length Length of Samples.
 	 * @param mono Merge all of the byte channels of samples in one channel instead (Optional).
-	 * @param Output that gets passed into this function (Optional).
-	 * @return Output of 
+	 * @param channel What channels to get from? (-1 == All Channels, Optional, this will be ignored if mono is enabled).
+	 * @param output An Output that gets passed into this function, usually for to avoid memory leaks (Optional).
+	 * @param outputMerge Merge with previous values (Optional, default false).
+	 * @return Output of samples.
 	 */
-	public function getSamples(startPos:Float, length:Int, mono = true, ?output:Array<Float>):Array<Float> {
-		((output == null) ? (__sampleOutput = output = []) : (__sampleOutput = output)).resize(__sampleOutputLength = length * (mono ? 1 : buffer.channels));
+	public function getSamples(startPos:Float, length:Int, mono = true, channel = -1, ?output:Array<Float>, ?outputMerge = false):Array<Float> {
+		((!mono && (__sampleChannel = channel) == -1) ? (__sampleOutputLength = length * buffer.channels) : (__sampleOutputLength = length));
+		((output == null) ? (__sampleOutput = output = []) : (__sampleOutput = output)).resize(__sampleOutputLength);
+		((mono) ? (__sampleToValue = 1.0 / (byteSize * buffer.channels)) : (__sampleToValue = 1.0 / byteSize));
+		__sampleOutputMerge = outputMerge;
 		__sampleIndex = 0;
 
 		__check();
-		__read(startPos, startPos + (length / __toBits * buffer.channels), mono ? __getSamplesCallbackMerge : __getSamplesCallback);
+		__read(startPos, startPos + (length / __toBits * buffer.channels), mono ? __getSamplesCallbackMono : (channel == -1 ? __getSamplesCallback : __getSamplesCallbackChannel));
 
 		__sampleOutput = null;
 		return output;
 	}
 
-	function __getSamplesCallbackMerge(b:Int, c:Int):Void if (__sampleIndex < __sampleOutputLength) {
-		if (c == 0) __sampleOutput[__sampleIndex] = b / buffer.channels / byteSize;
+	function __getSamplesCallbackMono(b:Int, c:Int):Void if (__sampleIndex < __sampleOutputLength) {
+		if (c == 0) {
+			if (__sampleOutputMerge) __sampleOutput[__sampleIndex] += b * __sampleToValue;
+			else __sampleOutput[__sampleIndex] = b * __sampleToValue;
+		}
 		else if (c == buffer.channels) {
-			__sampleOutput[__sampleIndex] += b / buffer.channels / byteSize;
+			__sampleOutput[__sampleIndex] += b * __sampleToValue;
 			__sampleIndex++;
 		}
 		else
-			__sampleOutput[__sampleIndex] += b / buffer.channels / byteSize;
+			__sampleOutput[__sampleIndex] += b * __sampleToValue;
+	}
+
+	function __getSamplesCallbackChannel(b:Int, c:Int):Void if (__sampleIndex < __sampleOutputLength) {
+		if (c == __sampleChannel) {
+			if (__sampleOutputMerge) __sampleOutput[__sampleIndex] += b * __sampleToValue;
+			else __sampleOutput[__sampleIndex] = b * __sampleToValue;
+			__sampleIndex++;
+		}
 	}
 
 	function __getSamplesCallback(b:Int, c:Int):Void if (__sampleIndex < __sampleOutputLength) {
-		__sampleOutput[__sampleIndex] = b / byteSize;
+		if (__sampleOutputMerge) __sampleOutput[__sampleIndex] += b * __sampleToValue;
+		else __sampleOutput[__sampleIndex] = b * __sampleToValue;
 		__sampleIndex++;
 	}
 
@@ -380,7 +448,7 @@ final class AudioAnalyzer {
 	}
 
 	inline function __readData(startPos:Float, endPos:Float, callback:AudioAnalyzerCallback) {
-		var pos = Math.floor(startPos * __toBits), end = Math.floor(endPos * __toBits), c = 0;
+		var pos = Math.floor(startPos * __toBits), end = Math.min(Math.floor(endPos * __toBits), buffer.data.buffer.length), c = 0;
 		pos -= pos % __sampleSize;
 		end -= end % __sampleSize;
 
