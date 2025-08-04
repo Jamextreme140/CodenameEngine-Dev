@@ -10,7 +10,11 @@
 	<!--
 		CHANGE THE SAVE PATH & NAME FOR YOUR MOD HERE!
 	-->
-	<app save-path="YoshiCrafter29/CodenameEngine" save-name="save-default" mod-saves="true" />
+	<haxedef name="SAVE_PATH" value="CodenameEngine"/>
+	<haxedef name="SAVE_NAME" value="save-default"/>
+
+	<haxedef name="SAVE_OPTIONS_PATH" value="CodenameEngine"/>
+	<haxedef name="SAVE_OPTIONS_NAME" value="options"/>
 
 	<!--Switch Export with Unique ApplicationID and Icon-->
 	<set name="APP_ID" value="0x0100f6c013bbc000" />
@@ -109,7 +113,7 @@
 
 	<!-- Comment this out to disable Discord RPC !-->
 	<section if="cpp">
-		<!-- <define name="DISCORD_RPC" if="desktop"/> -->
+		<define name="DISCORD_RPC" if="desktop"/>
 	</section>
 
 	<!-- Uncomment this to achive faster compile times, will strip extraneous and commonly unused features. -->
@@ -222,9 +226,10 @@
 	<!-- Fix compiling issues -->
 	<setenv name="HAXEPATH" value="./"/>
 
+	<haxedef name="HXCPP_M32" if="32bit" />
 	<haxedef name="HXCPP_CHECK_POINTER" if="release" />
 	<haxedef name="HXCPP_STACK_LINE" if="release" />
-	<haxedef name="HXCPP_DEBUG_LINK" if="release" />
+	<haxedef name="HXCPP_DEBUG_LINK" if="debug" />
 	<haxedef name="HXCPP_CATCH_SEGV" />
 
 	<haxedef name="hscriptPos" /> <!-- for logging -->

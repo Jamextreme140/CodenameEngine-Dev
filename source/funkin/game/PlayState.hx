@@ -457,15 +457,15 @@ class PlayState extends MusicBeatState
 	/**
 	 * Length of the intro countdown.
 	 */
-	public var introLength:Int = 5;
+	public var introLength:Int = Flags.DEFAULT_INTRO_LENGTH;
 	/**
 	 * Array of sprites for the intro.
 	 */
-	public var introSprites:Array<String> = [Flags.DEFAULT_PREPARE_SPRITE, Flags.DEFAULT_READY_SPRITE, Flags.DEFAULT_SET_SPRITE, Flags.DEFAULT_GO_SPRITE];
+	public var introSprites:Array<String> = Flags.DEFAULT_INTRO_SPRITES.copy();
 	/**
 	 * Array of sounds for the intro.
 	 */
-	public var introSounds:Array<String> = [Flags.DEFAULT_INTRO3_SOUND, Flags.DEFAULT_INTRO2_SOUND, Flags.DEFAULT_INTRO1_SOUND, Flags.DEFAULT_INTROGO_SOUND];
+	public var introSounds:Array<String> = Flags.DEFAULT_INTRO_SOUNDS.copy();
 
 	/**
 	 * Whenever the game is paused or not.
@@ -1765,7 +1765,7 @@ class PlayState extends MusicBeatState
 		var directionID:Null<Int> = note == null ? direction : note.strumID;
 		if (playerID == null || directionID == null || playerID == -1) return;
 
-		var event:NoteMissEvent = gameAndCharsEvent("onPlayerMiss", EventManager.get(NoteMissEvent).recycle(note, -10, 1, muteVocalsOnMiss, note != null ? -0.0475 : -0.04, Paths.sound(FlxG.random.getObject([Flags.DEFAULT_MISS1_SOUND, Flags.DEFAULT_MISS2_SOUND, Flags.DEFAULT_MISS3_SOUND])), FlxG.random.float(0.1, 0.2), note == null, combo > 5, "sad", true, true, "miss", strumLines.members[playerID].characters, playerID, note != null ? note.noteType : null, directionID, 0));
+		var event:NoteMissEvent = gameAndCharsEvent("onPlayerMiss", EventManager.get(NoteMissEvent).recycle(note, -10, 1, muteVocalsOnMiss, note != null ? -0.0475 : -0.04, Paths.sound(FlxG.random.getObject(Flags.DEFAULT_MISS_SOUNDS)), FlxG.random.float(0.1, 0.2), note == null, combo > 5, "sad", true, true, "miss", strumLines.members[playerID].characters, playerID, note != null ? note.noteType : null, directionID, 0));
 		strumLine.onMiss.dispatch(event);
 		if (event.cancelled) return;
 

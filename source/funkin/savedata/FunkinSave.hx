@@ -24,10 +24,12 @@ class FunkinSave {
 	public static var save:FlxSave;
 
 	public static function init() {
-		//trace(Application.current.meta.get('save-path'));
-		//trace(Application.current.meta.get('save-name'));
-		save = new FlxSave();
-		save.bind('save-default', #if sys 'YoshiCrafter29/CodenameEngine' #else 'CodenameEngine' #end);
+		var path = Flags.SAVE_PATH, name = Flags.SAVE_NAME;
+		if (path == null) path = 'CodenameEngine';
+		if (name == null) name = 'save-default';
+
+		if (save == null) save = new FlxSave();
+		save.bind(name, path);
 		load();
 
 		if (!__eventAdded) {

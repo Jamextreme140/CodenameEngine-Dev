@@ -1,5 +1,7 @@
 package funkin.options.categories;
 
+import funkin.savedata.FunkinSave;
+
 class MiscOptions extends TreeMenuScreen {
 	public function new() {
 		super('optionsTree.miscellaneous-name', 'optionsTree.miscellaneous-desc', 'MiscOptions.');
@@ -20,7 +22,9 @@ class MiscOptions extends TreeMenuScreen {
 
 		add(new Separator());
 		add(new TextOption(getNameID('resetSaveData'), getDescID('resetSaveData'), () -> {
-			// TODO: SAVE DATA RESETTING
+			FunkinSave.save.erase();
+			FunkinSave.highscores.clear();
+			FunkinSave.flush();
 		}));
 	}
 }

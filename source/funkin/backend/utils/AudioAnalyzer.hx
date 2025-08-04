@@ -314,6 +314,7 @@ final class AudioAnalyzer {
 	/**
 	 * Gets levels from an attached FlxSound from startPos, basically a minimized of frequencies.
 	 * @param startPos Start Position to get from sound in milliseconds.
+	 * @param volume How much volume multiplier will it affect the output. (Optional, default 1.0).
 	 * @param barCount How much bars to get.
 	 * @param levels The output for getting the values, to avoid memory leaks (Optional).
 	 * @param ratio How much ratio for smoothen the values from the previous levels values (Optional, use CoolUtil.getFPSRatio(1 - ratio) to simulate web AnalyserNode.smoothingTimeConstant, 0.35 of smoothingTime works most of the time).
@@ -323,17 +324,18 @@ final class AudioAnalyzer {
 	 * @param maxFreq The maximum frequency to cap (Optional, default 22000.0, Above 23000.0 is not recommended).
 	 * @return Output of levels/bars that ranges from 0 to 1.
 	 */
-	public function getLevels(startPos:Float, barCount:Int, ?levels:Array<Float>, ?ratio:Float, ?minDb:Float, ?maxDb:Float, ?minFreq:Float, ?maxFreq:Float):Array<Float>
-		return inline getLevelsFromFrequencies(__frequencies = getFrequencies(startPos, __frequencies), buffer.sampleRate, barCount, levels, ratio, minDb, maxDb, minFreq, maxFreq);
+	public function getLevels(startPos:Float, ?volume:Float, barCount:Int, ?levels:Array<Float>, ?ratio:Float, ?minDb:Float, ?maxDb:Float, ?minFreq:Float, ?maxFreq:Float):Array<Float>
+		return inline getLevelsFromFrequencies(__frequencies = getFrequencies(startPos, volume, __frequencies), buffer.sampleRate, barCount, levels, ratio, minDb, maxDb, minFreq, maxFreq);
 
 	/**
 	 * Gets frequencies from an attached FlxSound from startPos.
 	 * @param startPos Start Position to get from sound in milliseconds.
+	 * @param volume How much volume multiplier will it affect the output. (Optional, default 1.0).
 	 * @param frequencies The output for getting the frequencies, to avoid memory leaks (Optional).
 	 * @return Output of frequencies.
 	 */
-	public function getFrequencies(startPos:Float, ?frequencies:Array<Float>):Array<Float>
-		return inline getFrequenciesFromSamples(__freqSamples = getSamples(startPos, fftN, true, __freqSamples), fftN, useWindowingFFT, frequencies);
+	public function getFrequencies(startPos:Float, ?volume:Float, ?frequencies:Array<Float>):Array<Float>
+		return inline getFrequenciesFromSamples(__freqSamples = getSamples(startPos, fftN, true, -1, volume, __freqSamples), fftN, useWindowingFFT, frequencies);
 
 	/**
 	 * Analyzes an attached FlxSound from startPos to endPos in milliseconds to get the amplitudes.
@@ -381,14 +383,15 @@ final class AudioAnalyzer {
 	 * @param length Length of Samples.
 	 * @param mono Merge all of the byte channels of samples in one channel instead (Optional).
 	 * @param channel What channels to get from? (-1 == All Channels, Optional, this will be ignored if mono is enabled).
+	 * @param volume How much volume multiplier will it affect the output. (Optional, default 1.0).
 	 * @param output An Output that gets passed into this function, usually for to avoid memory leaks (Optional).
 	 * @param outputMerge Merge with previous values (Optional, default false).
 	 * @return Output of samples.
 	 */
-	public function getSamples(startPos:Float, length:Int, mono = true, channel = -1, ?output:Array<Float>, ?outputMerge = false):Array<Float> {
+	public function getSamples(startPos:Float, length:Int, mono = true, channel = -1, volume = 1.0, ?output:Array<Float>, ?outputMerge = false):Array<Float> {
 		((!mono && (__sampleChannel = channel) == -1) ? (__sampleOutputLength = length * buffer.channels) : (__sampleOutputLength = length));
 		((output == null) ? (__sampleOutput = output = []) : (__sampleOutput = output)).resize(__sampleOutputLength);
-		((mono) ? (__sampleToValue = 1.0 / (byteSize * buffer.channels)) : (__sampleToValue = 1.0 / byteSize));
+		((mono) ? (__sampleToValue = volume / (byteSize * buffer.channels)) : (__sampleToValue = 1.0 / byteSize));
 		__sampleOutputMerge = outputMerge;
 		__sampleIndex = 0;
 

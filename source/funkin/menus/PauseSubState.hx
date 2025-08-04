@@ -42,7 +42,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	public function new(?items:Array<String>, ?selectCall:NameEvent->Void) {
 		super();
-		menuItems = items != null ? items : Flags.DEFAULT_PAUSE_ITEMS;
+		menuItems = items != null ? items : Flags.DEFAULT_PAUSE_ITEMS.copy();
 		this.selectCall = selectCall;
 	}
 

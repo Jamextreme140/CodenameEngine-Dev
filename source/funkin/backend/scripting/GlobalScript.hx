@@ -73,6 +73,16 @@ class GlobalScript {
 		});
 		FlxG.signals.preStateSwitch.add(function() {
 			call("preStateSwitch", []);
+
+			var stateName = Type.getClassName(Type.getClass(@:privateAccess FlxG.game._requestedState));
+			stateName = stateName.substring(stateName.lastIndexOf(".") + 1);
+			if (Flags.MOD_REDIRECT_STATES.exists(stateName)) {
+				@:privateAccess {
+					var classFromString = Type.resolveClass(Flags.MOD_REDIRECT_STATES.get(stateName));
+					if (classFromString != null) FlxG.game._requestedState = Type.createInstance(classFromString, []);
+					else FlxG.game._requestedState = new funkin.backend.scripting.ModState(Flags.MOD_REDIRECT_STATES.get(stateName));
+				}
+			}
 		});
 
 		FlxG.signals.preUpdate.add(function() {

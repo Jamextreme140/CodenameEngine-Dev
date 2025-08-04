@@ -35,8 +35,12 @@ class Flags {
 	public static var MOD_DISCORD_LOGO_KEY:String = "";
 	public static var MOD_DISCORD_LOGO_TEXT:String = "";
 
-	@:bypass public static var MOD_REDIRECT_STATES:Map<String, String> = [];
+	public static var MOD_REDIRECT_STATES:Map<String, String> = [];
+
 	// -- Codename's Default Flags --
+	@:lazy public static var SAVE_PATH:String = haxe.macro.Compiler.getDefine("SAVE_PATH");
+	@:lazy public static var SAVE_NAME:String = haxe.macro.Compiler.getDefine("SAVE_NAME");
+
 	public static var CURRENT_API_VERSION:Int = 1;
 	public static var COMMIT_NUMBER:Int = GitCommitMacro.commitNumber;
 	public static var COMMIT_HASH:String = GitCommitMacro.commitHash;
@@ -157,10 +161,8 @@ class Flags {
 	public static var ICON_OFFSET:Float = 26;
 	public static var ICON_LERP:Float = 0.33;
 
-	public static var DEFAULT_PREPARE_SPRITE:String = null;
-	public static var DEFAULT_READY_SPRITE:String = 'game/ready';
-	public static var DEFAULT_SET_SPRITE:String = 'game/set';
-	public static var DEFAULT_GO_SPRITE:String = 'game/go';
+	public static var DEFAULT_INTRO_LENGTH:Int = 5;
+	public static var DEFAULT_INTRO_SPRITES:Array<String> = [null, 'game/ready', 'game/set', 'game/go'];
 
 	public static var CAM_BOP_STRENGTH:Float = 0.015;
 	public static var HUD_BOP_STRENGTH:Float = 0.03;
@@ -210,13 +212,8 @@ class Flags {
 	public static var DEFAULT_PAUSE_MENU_MUSIC:String = "breakfast";
 	public static var DEFAULT_GAMEOVER_MUSIC:String = "gameOver";
 
-	public static var DEFAULT_MISS1_SOUND:String = "missnote1";
-	public static var DEFAULT_MISS2_SOUND:String = "missnote2";
-	public static var DEFAULT_MISS3_SOUND:String = "missnote3";
-	public static var DEFAULT_INTRO1_SOUND:String = "intro1";
-	public static var DEFAULT_INTRO2_SOUND:String = "intro2";
-	public static var DEFAULT_INTRO3_SOUND:String = "intro3";
-	public static var DEFAULT_INTROGO_SOUND:String = "introGo";
+	public static var DEFAULT_MISS_SOUNDS:Array<String> = ["missnote1", "missnote2", "missnote3"];
+	public static var DEFAULT_INTRO_SOUNDS:Array<String> = ["intro3", "intro2", "intro1", "introGo"];
 	public static var DEFAULT_GAMEOVERSFX_SOUND:String = "gameOverSFX";
 	public static var DEFAULT_GAMEOVEREND_SOUND:String = "gameOverEnd";
 
@@ -271,14 +268,19 @@ class Flags {
 		if (!(data.length > 0)) return;
 		var res = IniUtil.parseString(data);
 
-		if (res.exists("Common")) for (key => value in res.get("Common")) flags["MOD_" + key] = value;
-		if (res.exists("Discord")) for (key => value in res.get("Discord")) flags["MOD_DISCORD_" + key] = value;
-		if (res.exists("Flags")) for (key => value in res.get("Flags")) flags[key] = value;
-
-		if (res.exists("StateRedirects")) for (key => value in res.get("StateRedirects")) 
-			if (!Flags.MOD_REDIRECT_STATES.exists(key)) Flags.MOD_REDIRECT_STATES.set(key, value);
-		if (res.exists("StateRedirects.force")) for (key => value in res.get("StateRedirects.force")) 
-			Flags.MOD_REDIRECT_STATES.set(key, value);
+		for (name => section in res) {
+			switch (name) {
+				case "Common": for (key => value in section) flags["MOD_" + key] = value;
+				case "Discord": for (key => value in section) flags["MOD_DISCORD_" + key] = value;
+				case "Flags": for (key => value in section) flags[key] = value;
+				case "StateRedirects.force": for (key => value in section) MOD_REDIRECT_STATES.set(key, value);
+				case "StateRedirects": for (key => value in section) if (!MOD_REDIRECT_STATES.exists(key)) MOD_REDIRECT_STATES.set(key, value);
+				case "Global": // do nothing
+				default:
+					if (Std.isOfType(Reflect.field(Flags, name), haxe.ds.StringMap)) Reflect.setProperty(Flags, name, section);
+					else trace('Invalid section $name');
+			}
+		}
 	}
 
 	public static function loadFromDatas(datas:Array<String>) {
@@ -291,8 +293,6 @@ class Flags {
 	}
 
 	public static function parseFlags(flags:Map<String, String>) {
-		customFlags = [];
-		reset();
 		for(name=>value in flags)
 			if(!parse(name, value))
 				customFlags.set(name, value);

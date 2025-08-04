@@ -193,8 +193,12 @@ class Options
 	public static var SOLO_DEV_RELOAD(get, null):Array<FlxKey>;
 
 	public static function load() {
+		var path = haxe.macro.Compiler.getDefine("SAVE_OPTIONS_PATH"), name = haxe.macro.Compiler.getDefine("SAVE_OPTIONS_NAME");
+		if (path == null) path = 'CodenameEngine';
+		if (name == null) name = 'options';
+
 		if (__save == null) __save = new FlxSave();
-		__save.bind("options", "CodenameEngine");
+		__save.bind(name, path);
 		__load();
 
 		if (!__eventAdded) {

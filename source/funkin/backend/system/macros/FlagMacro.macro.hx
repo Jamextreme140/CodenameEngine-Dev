@@ -30,12 +30,13 @@ class FlagMacro {
 
 		var resetExprs:Array<Expr> = [];
 		var parserExprs:Array<Expr> = [];
+		resetExprs.push(macro $i{"customFlags"} = $v{[]});
 
 		for (field in fields) {
 			var skip = field.meta.hasMeta(":bypass");
 			var hasLazy = field.meta.hasMeta(":lazy");
 
-			if(skip) continue;
+			if (skip) continue;
 
 			switch (field.kind) {
 				case FVar(type, expr):
@@ -61,9 +62,8 @@ class FlagMacro {
 						}
 					}
 
-					if(expr == null)
-						Context.error('Flag ' + field.name + ' must have a default value', field.pos);
-					if(type == null) {
+					if (expr == null) Context.error('Flag ' + field.name + ' must have a default value', field.pos);
+					if (type == null) {
 						switch(expr.expr) {
 							case EConst(CIdent("true")) | EConst(CIdent("false")):
 								type = macro: Bool;
@@ -84,13 +84,13 @@ class FlagMacro {
 					switch(type) {
 						case macro: Array<TrimmedString>:
 							field.kind = FVar(macro: Array<String>, expr);
-							parser = macro value.split(",").map((e) -> e.trim());
+							parser = macro value.split(",").map((e) -> e == 'NULL' ? null : e.trim());
 						case macro: Array<String>:
-							parser = macro value.split(",");
+							parser = macro value.split(",").map((e) -> e == 'NULL' ? null : e);
 						case (macro: Array<Int>) | (macro: Array<FlxColor>):
-							parser = macro value.split(",").map((e) -> Std.parseInt(e));
+							parser = macro value.split(",").map((e) -> e == 'NULL' ? null : Std.parseInt(e));
 						case macro: Array<Float>:
-							parser = macro value.split(",").map((e) -> Std.parseFloat(e));
+							parser = macro value.split(",").map((e) -> e == 'NULL' ? null : Std.parseFloat(e));
 						case macro: Array<Bool>:
 							parser = macro value.split(",").map(parseBool);
 						case macro: TrimmedString:
@@ -183,13 +183,15 @@ class FlagMacro {
 						case TPath({name: "Array", pack: []}):
 							Context.error("Flag " + field.name + " cannot be an Array that isn't a String or Bool or TrimmedString or Int or Float", field.pos);
 						case TPath({name: "Map", pack: []}):
-							Context.error("Flag " + field.name + " cannot be a Map<K, V>", field.pos);
+							//Context.error("Flag " + field.name + " cannot be a Map<K, V>", field.pos);
+							resetExprs.push(macro $i{field.name} = ${expr});
+							continue;
 						default:
 							Context.error("Flag " + field.name + " must be either a Bool, Int, Float, String, Array<String>, Array<Int>, Array<Float>, Array<Bool> or Array<TrimmedString>", field.pos);
 					}
 
-					if(parser == null) {
-						Context.error("Flag " + field.name + " must be either a Bool, Int, String, Array<String>, Array<Bool> or Array<TrimmedString>", field.pos);
+					if (parser == null) {
+						Context.error("Flag " + field.name + " must be either a Bool, Int, Float, String, Array<String>, Array<Int>, Array<Float>, Array<Bool> or Array<TrimmedString>", field.pos);
 						continue;
 					}
 
