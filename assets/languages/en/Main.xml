@@ -73,12 +73,6 @@
 		<str id="mainMenu.openMods">[{0}] Open Mods menu</str>
 	</group>
 
-	<group name="BetaWarning">
-		<str id="betaWarning.title">WARNING</str>
-		<str id="betaWarning.desc">This engine is still in a *{0}* state. That means *majority of the features* are either *buggy* or *non finished*. If you find any bugs, please report them to the Codename Engine GitHub.</str>
-		<str id="betaWarning.proceed">Press {0} to continue</str>
-	</group>
-
 	<group name="Updater">
 		<group name="UpdateAvailable">
 			<str id="updateAvailable.title">NEW UPDATE</str>

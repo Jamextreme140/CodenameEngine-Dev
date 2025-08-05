@@ -12,7 +12,7 @@
 
 		<str id="optionsTree.gameplay-name">Rozgrywka</str>
 		<str id="optionsTree.gameplay-desc">Zmień ustawienia rozgrywki takie jak Przewijanie w dół, Prędkość Przewijania, Niegrzeczność...</str>
-		<str id="optionsTree.gameplay.advanced-desc">Zmień bardziej zaawansowane opcje takie jak Rorzmiar Okna, Strumieniowanie Audio...</str>
+		<str id="optionsTree.gameplay.advanced-desc">Zmień bardziej zaawansowane opcje takie jak Strumieniowanie Audio...</str>
 
 		<str id="optionsTree.appearance-name">Wygląd</str>
 		<str id="optionsTree.appearance-desc">Zmień ustawienia wyglądu takie jak Migające Światła...</str>
@@ -22,8 +22,6 @@
 
 		<str id="optionsTree.miscellaneous-name">Różnorodne</str>
 		<str id="optionsTree.miscellaneous-desc">Użyj tej kategorii aby usunąć zapis lub zmienić ustawienia silnika.</str>
-
-		<!-- cant have debug here -->
 	</group>
 
 	<group name="KeybindOptions" prefix="KeybindsOptions.">

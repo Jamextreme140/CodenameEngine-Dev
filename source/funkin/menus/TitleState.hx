@@ -23,7 +23,6 @@ class TitleState extends MusicBeatState
 
 	public var blackScreen:FlxSprite;
 	public var textGroup:FlxGroup;
-	public var ngSpr:FlxSprite;
 
 	override public function create():Void
 	{
@@ -56,13 +55,14 @@ class TitleState extends MusicBeatState
 		loadXML();
 
 		if (titleText == null) {
-			titleText = new FlxSprite(100, FlxG.height * 0.8);
+			titleText = new FlxSprite(0, FlxG.height * 0.8);
 			titleText.frames = Paths.getFrames('menus/titlescreen/titleEnter');
 			titleText.animation.addByPrefix('idle', "Press Enter to Begin", 24);
 			titleText.animation.addByPrefix('press', "ENTER PRESSED", 24);
 			titleText.antialiasing = true;
 			titleText.animation.play('idle');
 			titleText.updateHitbox();
+			titleText.screenCenter(X);
 		}
 		add(titleText);
 
@@ -337,6 +337,7 @@ class IntroText {
 				sprite.scale.set(scale, scale);
 				sprite.updateHitbox();
 				sprite.screenCenter(X);
+				sprite.antialiasing = true;
 				state.textGroup.add(sprite);
 			}
 		}

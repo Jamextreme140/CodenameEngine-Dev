@@ -138,17 +138,6 @@ class Main extends Sprite
 		funkin.backend.scripting.GlobalScript.init();
 		#end
 
-		#if (sys && TEST_BUILD)
-			Logs.infos("Used cne test / cne build. Switching into source assets.");
-			#if MOD_SUPPORT
-				ModsFolder.modsPath = './${pathBack}mods/';
-				ModsFolder.addonsPath = './${pathBack}addons/';
-			#end
-			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', './${pathBack}assets/', true, SOURCE));
-		#elseif USE_ADAPTED_ASSETS
-			Paths.assetsTree.__defaultLibraries.push(ModsFolder.loadLibraryFromFolder('assets', './assets/', true, SOURCE));
-		#end
-
 		var lib = new AssetLibrary();
 		@:privateAccess
 		lib.__proxy = Paths.assetsTree;

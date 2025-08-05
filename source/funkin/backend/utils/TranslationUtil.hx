@@ -12,7 +12,7 @@ import funkin.backend.utils.translations.FormatUtil;
 /**
  * The class used for translations based on the XMLs inside the translations folders.
  *
- * Made by @NexIsDumb originally for the Poldhub mod and improved thanks to him and @NeeEoo.
+ * Made by @NexIsDumb originally for the Poldhub mod.
  */
 @:allow(funkin.backend.assets.TranslatedAssetLibrary)
 final class TranslationUtil

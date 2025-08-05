@@ -4,8 +4,8 @@ class LanguageRadio extends RadioButton {
 	public var langID:String;
 
 	public function new(screen:TreeMenuScreen, name:String, langID:String) {
-		super(screen, name, "LanguageOptions.language-desc", null, langID, null, "languageSelector");
 		this.langID = langID;
+		super(screen, name, "LanguageOptions.language-desc", null, langID, null, "languageSelector");
 
 		checked = langID == TU.curLanguage;
 	}

@@ -153,12 +153,12 @@ class ModsFolder {
 		return font;
 	}
 
-	public static function prepareModLibrary(libName:String, lib:IModsAssetLibrary, force:Bool = false, ?tag:AssetSource = MODS) {
+	public static function prepareModLibrary(libName:String, lib:IModsAssetLibrary, force:Bool = false, ?tag:AssetSource) {
 		var openLib = prepareLibrary(libName, force);
 		lib.prefix = 'assets/';
 		@:privateAccess
 		openLib.__proxy = cast(lib, lime.utils.AssetLibrary);
-		if(tag != null) {
+		if (tag != null) {
 			openLib.tag = tag;
 			cast(lib, lime.utils.AssetLibrary).tag = tag;
 		}

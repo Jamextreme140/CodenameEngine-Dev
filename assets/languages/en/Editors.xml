@@ -16,7 +16,7 @@
 		<str id="animation">Animation</str>
 		<str id="atlas">Atlas</str>
 		<str id="spritemap">Spritemap</str>
-		
+
 		<str id="directory">Directory ({0}/)</str>
 		<str id="found">{0} {1} Found</str>
 		<str id="foundplural">{0} {1} Found</str>

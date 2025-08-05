@@ -235,6 +235,8 @@ class FlxSound extends FlxBasic {
 	var _paused:Bool;
 	var _volume:Float;
 	var _volumeAdjust:Float;
+	var _pan:Float;
+	var _panAdjust:Float;
 	var _time:Float;
 	var _offset:Float;
 	var _timeInterpolation:Float;
@@ -266,10 +268,10 @@ class FlxSound extends FlxBasic {
 		onFinish.removeAll();
 
 		x = y = 0;
-		muted = false;
-		looped = false;
-		loopTime = 0;
-		endTime = null;
+		@:bypassAccessor muted = false;
+		@:bypassAccessor looped = false;
+		@:bypassAccessor loopTime = 0;
+		@:bypassAccessor endTime = null;
 		autoDestroy = false;
 		visible = false;
 		target = null;
@@ -287,6 +289,8 @@ class FlxSound extends FlxBasic {
 		_amplitudeLeft = _amplitudeRight = 0;
 		_amplitudeUpdate = true;
 		#if FLX_PITCH _pitch = _realPitch = _timeScaleAdjust = 1; #end
+
+		if (_transform == null) _transform = new SoundTransform();
 	}
 
 	/**
@@ -344,22 +348,19 @@ class FlxSound extends FlxBasic {
 
 		_amplitudeUpdate = true;
 
-		var radialMultiplier = 1.0;
-
 		// Distance-based volume control (TODO for Ralty: REDO THIS)
 		if (target != null) {
 			var targetPosition = target.getPosition();
-			radialMultiplier = targetPosition.distanceTo(FlxPoint.weak(x, y)) / radius;
+			var radialMultiplier = targetPosition.distanceTo(FlxPoint.weak(x, y)) / radius;
 			targetPosition.put();
 			radialMultiplier = 1 - FlxMath.bound(radialMultiplier, 0, 1);
 
-			if (proximityPan && _transform != null) {
-				var d:Float = (x - target.x) / radius;
-				_transform.pan = FlxMath.bound(d, -1, 1);
-			}
+			_volumeAdjust = radialMultiplier;
+			if (proximityPan) _panAdjust = (x - target.x) / radius;
 		}
+		else
+			_volumeAdjust = 1.0;
 
-		_volumeAdjust = radialMultiplier;
 		updateTransform();
 	}
 
@@ -492,8 +493,6 @@ class FlxSound extends FlxBasic {
 			_channel.__source = _source;
 			SoundMixer.__registerSoundChannel(_channel);
 		}
-		if (_transform == null) _transform = new SoundTransform();
-		_transform.pan = 0;
 		_length = _source.length;
 
 		_source.onComplete.add(stopped);
@@ -507,14 +506,23 @@ class FlxSound extends FlxBasic {
 	 */
 	@:allow(flixel.sound.FlxSoundGroup)
 	function updateTransform() {
-		if (_transform == null) {
-			_transform = new SoundTransform();
-			pan = pan;
-		}
-		_transform.volume = #if FLX_SOUND_SYSTEM ((FlxG.sound.muted || muted) ? 0 : 1) * FlxG.sound.volume * #end
-			(group != null ? group.volume : 1) * _volume * _volumeAdjust;
-
+		_transform.volume = calcTransformVolume();
+		_transform.pan = _pan + _panAdjust;
 		if (_channel != null) _channel.soundTransform = _transform;
+	}
+
+	public function calcTransformVolume():Float {
+		if (muted) return 0.0;
+
+		#if FLX_SOUND_SYSTEM
+		if (FlxG.sound.muted) return 0.0;
+
+		// TODO: when flixel-cne is updated, enable this
+		//return FlxG.sound.applySoundCurve(FlxG.sound.volume * volume);
+		return FlxG.sound.volume * getActualVolume();
+		#else
+		return getActualVolume();
+		#end
 	}
 
 	/**
@@ -642,7 +650,7 @@ class FlxSound extends FlxBasic {
 	 * @return	The adjusted volume of the sound.
 	 */
 	public inline function getActualVolume():Float
-		return _volume * _volumeAdjust;
+		return (group != null ? group.getVolume() : 1.0) * _volume * _volumeAdjust;
 
 	#if FLX_PITCH
 	/**
@@ -684,7 +692,6 @@ class FlxSound extends FlxBasic {
 			#end
 
 			updateTransform();
-			_channel.soundTransform = _transform;
 			_channel.__lastPeakTime = -10;
 			_channel.__leftPeak = 0;
 			_channel.__rightPeak = 0;
@@ -773,6 +780,13 @@ class FlxSound extends FlxBasic {
 		return muted;
 	}
 
+	inline function get_pan():Float return _pan;
+	inline function set_pan(v:Float):Float {
+		_pan = FlxMath.bound(v, -1, 1);
+		updateTransform();
+		return _pan;
+	}
+
 	inline function get_loaded():Bool
 		return buffer != null;
 
@@ -842,9 +856,6 @@ class FlxSound extends FlxBasic {
 		}
 		return endTime = v;
 	}
-
-	inline function get_pan():Float return _transform.pan;
-	inline function set_pan(pan:Float):Float return _transform.pan = pan;
 
 	inline function getFakeTime():Float {
 		if (_source.playing && _realPitch > 0 && _lastTime != null)

@@ -73,12 +73,6 @@
 		<str id="mainMenu.openMods">[{0}] Otwórz menu modów</str>
 	</group>
 
-	<group name="BetaWarning">
-		<str id="betaWarning.title">OSTRZEŻENIE</str>
-		<str id="betaWarning.desc">Ten Silnik nadal jest w fazie *{0}*. To oznacza że *większość funkcji* ma *błędy* lub jest *niedokończona*. Jeśli znajdziesz jakiekolwiek błędy, zgłoś to na Github'ie silnika Codename. Proszę być uprzedzonym iż większość członków rozmawia tylko w języku angielskim.</str>
-		<str id="betaWarning.proceed">Naciśnij {0} aby kontynuować</str>
-	</group>
-
 	<group name="Updater">
 		<group name="UpdateAvailable">
 			<str id="updateAvailable.title">NOWA AKTUALIZACJA</str>
